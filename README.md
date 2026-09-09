@@ -4,6 +4,15 @@ A native Windows desktop console for **Real-Life Dungeon Master** built with **C
 
 ---
 
+## Related Repositories
+
+| Repository | Description |
+|---|---|
+| 🗄️ [Questlog-Backend](https://github.com/HammadIsmail/Questlog-Backend) | FastAPI backend — AI, scoring, scheduling, and REST API |
+| 🧩 [Questlog-Chrome-Extension](https://github.com/HammadIsmail/Questlog-Chrome-Extension) | Manifest V3 browser extension for domain tracking |
+
+---
+
 ## Key Features
 
 - **Real-Time Window Telemetry**:
