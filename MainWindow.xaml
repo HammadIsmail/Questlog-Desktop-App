@@ -1,0 +1,147 @@
+<Window x:Class="Questlog.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:Questlog.ViewModels"
+        mc:Ignorable="d"
+        Title="Questlog — Real-Life Dungeon Master" 
+        Height="800" Width="1200"
+        MinHeight="650" MinWidth="950"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BrushBackground}"
+        d:DataContext="{d:DesignInstance vm:MainViewModel}">
+
+    <Window.Resources>
+        <!-- Nav Button Style -->
+        <Style x:Key="NavButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="Padding" Value="14,10" />
+            <Setter Property="FontFamily" Value="{StaticResource FontBody}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Margin" Value="0,2" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource BrushSurface}" />
+                                <Setter Property="Foreground" Value="{StaticResource BrushAccentDark}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource BrushSurfaceMuted}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="230" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Left Sidebar -->
+        <Border Grid.Column="0" Background="{StaticResource BrushSidebar}" 
+                BorderBrush="{StaticResource BrushBorder}" BorderThickness="0,0,1,0">
+            <Grid Margin="18,20,18,20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="24" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- App Branding -->
+                <StackPanel Grid.Row="0">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Background="{StaticResource BrushAccent}" CornerRadius="6" Width="28" Height="28" Margin="0,0,10,0">
+                            <TextBlock Text="⚔" FontSize="16" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="QUESTLOG" FontFamily="{StaticResource FontDisplay}" FontSize="20" FontWeight="Bold" 
+                                   Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Text="Real-Life Dungeon Master" Style="{StaticResource TextSecondary}" FontSize="11" Margin="38,2,0,0"/>
+                </StackPanel>
+
+                <!-- Navigation List -->
+                <StackPanel Grid.Row="2">
+                    <TextBlock Text="CAMPAIGN" Style="{StaticResource TextSectionTitle}" Margin="6,0,0,8"/>
+                    <Button Content="📊  Overview" Style="{StaticResource NavButton}" 
+                            Command="{Binding NavigateToCommand}" CommandParameter="Dashboard"/>
+                    <Button Content="📅  Daily Schedule" Style="{StaticResource NavButton}" 
+                            Command="{Binding NavigateToCommand}" CommandParameter="Schedule"/>
+                    <Button Content="🎯  Active Quests" Style="{StaticResource NavButton}" 
+                            Command="{Binding NavigateToCommand}" CommandParameter="Goals"/>
+
+                    <TextBlock Text="INTELLIGENCE" Style="{StaticResource TextSectionTitle}" Margin="6,18,0,8"/>
+                    <Button Content="📈  Analytics" Style="{StaticResource NavButton}" 
+                            Command="{Binding NavigateToCommand}" CommandParameter="Analytics"/>
+                    <Button Content="⏱  Window Tracker" Style="{StaticResource NavButton}" 
+                            Command="{Binding NavigateToCommand}" CommandParameter="Activity"/>
+                    <Button Content="🧙  Dungeon Master AI" Style="{StaticResource NavButton}" 
+                            Command="{Binding NavigateToCommand}" CommandParameter="Coach"/>
+
+                    <TextBlock Text="SYSTEM" Style="{StaticResource TextSectionTitle}" Margin="6,18,0,8"/>
+                    <Button Content="⚙  Settings" Style="{StaticResource NavButton}" 
+                            Command="{Binding NavigateToCommand}" CommandParameter="Settings"/>
+                </StackPanel>
+
+                <!-- Bottom Telemetry Status -->
+                <Border Grid.Row="3" Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushBorder}"
+                        BorderThickness="1" CornerRadius="6" Padding="12,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Background="{StaticResource BrushSuccess}" CornerRadius="10" Width="8" Height="8" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="Active Monitoring" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}"/>
+                            <TextBlock Text="Local Daemon Connected" FontSize="10" Foreground="{StaticResource BrushTextSecondary}"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+            </Grid>
+        </Border>
+
+        <!-- Right Content Area -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="60" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- Top Header Bar -->
+            <Border Grid.Row="0" Background="{StaticResource BrushSurface}" 
+                    BorderBrush="{StaticResource BrushBorder}" BorderThickness="0,0,0,1" Padding="28,0">
+                <Grid VerticalAlignment="Center">
+                    <TextBlock Text="{Binding CurrentViewTitle}" FontFamily="{StaticResource FontDisplay}" 
+                               FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" 
+                               VerticalAlignment="Center"/>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding CurrentDateFormatted}" FontFamily="{StaticResource FontMono}" 
+                                   FontSize="12" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Active View Content -->
+            <ContentControl Grid.Row="1" Content="{Binding CurrentView}" Focusable="False"/>
+        </Grid>
+
+    </Grid>
+</Window>

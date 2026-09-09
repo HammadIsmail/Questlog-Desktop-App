@@ -1,0 +1,87 @@
+<UserControl x:Class="Questlog.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vm="clr-namespace:Questlog.ViewModels"
+             mc:Ignorable="d" 
+             d:DesignHeight="700" d:DesignWidth="900"
+             d:DataContext="{d:DesignInstance vm:SettingsViewModel}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="{StaticResource ContentPadding}">
+
+            <!-- Header -->
+            <Grid Margin="0,0,0,24">
+                <StackPanel>
+                    <TextBlock Text="System Settings" Style="{StaticResource TextPageTitle}"/>
+                    <TextBlock Text="Configure tracking behavior, daemon connection, and preferences." 
+                               Style="{StaticResource TextSecondary}" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Backend Connection Card -->
+            <Border Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushBorder}"
+                    BorderThickness="1" CornerRadius="{StaticResource RadiusPanel}" Padding="20" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="BACKEND DAEMON" Style="{StaticResource TextSectionTitle}" Margin="0,0,0,16"/>
+
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="16" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="FastAPI Server Endpoint" Style="{StaticResource TextSecondary}" Margin="0,0,0,4"/>
+                            <TextBox Text="{Binding BackendUrl, UpdateSourceTrigger=PropertyChanged}" 
+                                     Style="{StaticResource FormInput}"/>
+                        </StackPanel>
+
+                        <Button Grid.Column="2" Content="Test Health" Style="{StaticResource ButtonPrimary}"
+                                VerticalAlignment="Bottom" Padding="16,10" Command="{Binding CheckHealthCommand}"/>
+                    </Grid>
+
+                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                        <TextBlock Text="Daemon Status: " Style="{StaticResource TextSecondary}"/>
+                        <TextBlock Text="{Binding BackendStatus}" FontWeight="SemiBold" 
+                                   Foreground="{StaticResource BrushAccentDark}"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- Tracking Configuration Card -->
+            <Border Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushBorder}"
+                    BorderThickness="1" CornerRadius="{StaticResource RadiusPanel}" Padding="20" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="LOCAL TELEMETRY &amp; TRACKING" Style="{StaticResource TextSectionTitle}" Margin="0,0,0,16"/>
+
+                    <CheckBox Content="Enable Foreground Window &amp; Active App Tracking" 
+                              IsChecked="{Binding IsTrackingEnabled}" Margin="0,0,0,16"
+                              Style="{StaticResource ModernCheckBox}"/>
+
+                    <StackPanel Margin="0,0,0,10">
+                        <TextBlock Text="Idle Threshold (Seconds)" Style="{StaticResource TextSecondary}" Margin="0,0,0,4"/>
+                        <TextBox Text="{Binding IdleThresholdSeconds, UpdateSourceTrigger=PropertyChanged}" 
+                                 Style="{StaticResource FormInput}" Width="200" HorizontalAlignment="Left"/>
+                        <TextBlock Text="Time without keyboard/mouse input before pausing active session time." 
+                                   Style="{StaticResource TextSecondary}" FontSize="11" Margin="0,4,0,0"/>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- About Card -->
+            <Border Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushBorder}"
+                    BorderThickness="1" CornerRadius="{StaticResource RadiusPanel}" Padding="20">
+                <StackPanel>
+                    <TextBlock Text="ABOUT REAL-LIFE DUNGEON MASTER" Style="{StaticResource TextSectionTitle}" Margin="0,0,0,12"/>
+                    <TextBlock Text="Real-Life Dungeon Master — Desktop Edition v1.0.0" FontWeight="Bold" Style="{StaticResource TextBody}"/>
+                    <TextBlock Text="Engineered for Assemble AI Hackathon. Combines FastAPI async microservice architecture with WPF native Windows telemetry tracking and multi-agent LLM orchestration." 
+                               Style="{StaticResource TextSecondary}" Margin="0,4,0,0" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

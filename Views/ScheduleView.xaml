@@ -1,0 +1,80 @@
+<UserControl x:Class="Questlog.Views.ScheduleView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vm="clr-namespace:Questlog.ViewModels"
+             mc:Ignorable="d" 
+             d:DesignHeight="700" d:DesignWidth="900"
+             d:DataContext="{d:DesignInstance vm:ScheduleViewModel}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="{StaticResource ContentPadding}">
+
+            <!-- Header -->
+            <Grid Margin="0,0,0,24">
+                <StackPanel>
+                    <TextBlock Text="Tactical Schedule" Style="{StaticResource TextPageTitle}"/>
+                    <TextBlock Text="AI-orchestrated itinerary designed to optimize focus blocks and conquer goals." 
+                               Style="{StaticResource TextSecondary}" Margin="0,4,0,0"/>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <Button Content="Refresh" Style="{StaticResource ButtonGhost}" Margin="0,0,10,0"
+                            Command="{Binding LoadScheduleCommand}"/>
+                    <Button Content="⚡ Generate AI Schedule" Style="{StaticResource ButtonPrimary}"
+                            Command="{Binding GenerateAiScheduleCommand}"/>
+                </StackPanel>
+            </Grid>
+
+            <!-- Schedule Items Container -->
+            <Border Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushBorder}"
+                    BorderThickness="1" CornerRadius="{StaticResource RadiusPanel}" Padding="24">
+                <StackPanel>
+                    <TextBlock Text="TODAY'S CAMPAIGN BLOCKS" Style="{StaticResource TextSectionTitle}" Margin="0,0,0,16"/>
+
+                    <ItemsControl ItemsSource="{Binding ScheduleItems}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="{StaticResource BrushBorder}" BorderThickness="0,0,0,1" Padding="0,14">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="140" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="100" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Time slot -->
+                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding StartTime, StringFormat='{}{0:hh:mm tt}'}" 
+                                                       FontFamily="{StaticResource FontMono}" FontSize="13" FontWeight="SemiBold"
+                                                       Foreground="{StaticResource BrushAccentDark}"/>
+                                            <TextBlock Text="{Binding EndTime, StringFormat='{}to {0:hh:mm tt}'}" 
+                                                       FontFamily="{StaticResource FontMono}" FontSize="11" 
+                                                       Foreground="{StaticResource BrushTextSecondary}"/>
+                                        </StackPanel>
+
+                                        <!-- Title -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Title}" Style="{StaticResource TextCardTitle}" FontSize="15"/>
+                                            <TextBlock Text="{Binding DurationMinutes, StringFormat='{}{0} minutes allocated'}" 
+                                                       Style="{StaticResource TextSecondary}" Margin="0,2,0,0"/>
+                                        </StackPanel>
+
+                                        <!-- Status Badge -->
+                                        <Border Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                Background="{StaticResource BrushSurfaceMuted}" CornerRadius="4" Padding="8,4">
+                                            <TextBlock Text="Scheduled" FontFamily="{StaticResource FontMono}" 
+                                                       FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                                        </Border>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
