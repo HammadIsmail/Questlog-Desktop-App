@@ -41,7 +41,9 @@
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="140" />
                                             <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="100" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="12" />
+                                            <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
 
                                         <!-- Time slot -->
@@ -54,18 +56,49 @@
                                                        Foreground="{StaticResource BrushTextSecondary}"/>
                                         </StackPanel>
 
-                                        <!-- Title -->
+                                        <!-- Title + duration -->
                                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                             <TextBlock Text="{Binding Title}" Style="{StaticResource TextCardTitle}" FontSize="15"/>
                                             <TextBlock Text="{Binding DurationMinutes, StringFormat='{}{0} minutes allocated'}" 
                                                        Style="{StaticResource TextSecondary}" Margin="0,2,0,0"/>
                                         </StackPanel>
 
+                                        <!-- ⏩ Shift +30m button (only on incomplete blocks) -->
+                                        <Button Grid.Column="2" Content="⏩ Shift +30m"
+                                                Style="{StaticResource ButtonGhost}"
+                                                Padding="10,5" FontSize="12"
+                                                VerticalAlignment="Center"
+                                                Command="{Binding DataContext.ShiftScheduleCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}"
+                                                Visibility="{Binding IsCompleted, Converter={StaticResource InverseBoolToVisibility}}"/>
+
                                         <!-- Status Badge -->
-                                        <Border Grid.Column="2" HorizontalAlignment="Right" VerticalAlignment="Center"
-                                                Background="{StaticResource BrushSurfaceMuted}" CornerRadius="4" Padding="8,4">
-                                            <TextBlock Text="Scheduled" FontFamily="{StaticResource FontMono}" 
-                                                       FontSize="11" Foreground="{StaticResource BrushTextSecondary}"/>
+                                        <Border Grid.Column="4" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                                CornerRadius="4" Padding="8,4">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="{StaticResource BrushSurfaceMuted}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsCompleted}" Value="True">
+                                                            <Setter Property="Background" Value="{StaticResource BrushSuccess}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock FontFamily="{StaticResource FontMono}" FontSize="11">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="Scheduled"/>
+                                                        <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsCompleted}" Value="True">
+                                                                <Setter Property="Text" Value="✓ Done"/>
+                                                                <Setter Property="Foreground" Value="White"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
                                         </Border>
                                     </Grid>
                                 </Border>
@@ -73,6 +106,7 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </StackPanel>
+
             </Border>
 
         </StackPanel>

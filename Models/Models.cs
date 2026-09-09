@@ -124,3 +124,7 @@ public record InsightRecord(
 public record InsightsResponse(
     [property: JsonPropertyName("insights")] List<InsightRecord> Insights
 );
+
+public record VoiceTokenResponse(
+    [property: JsonPropertyName("token")] string Token
+);

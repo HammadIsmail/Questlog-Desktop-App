@@ -22,11 +22,18 @@ public class ActivityTrackerService : IDisposable
     private bool _currentIsProductive = true;
     private DateTime _currentSessionStart;
 
+    // Distraction tracking (Phase 6)
+    private int _consecutiveUnproductiveSeconds = 0;
+    private bool _distractionAlertFired = false;
+    private const int DistractionThresholdSeconds = 20 * 60; // 20 minutes
+
     private readonly List<ActivityCreate> _pendingActivities = new();
     private readonly List<ActivityRecord> _recentActivities = new();
 
     public event Action<ActivityRecord>? ActivityLogged;
     public event Action<string, string, string>? ActiveWindowChanged;
+    /// <summary>Fires once per distraction block when unproductive time exceeds 20 minutes.</summary>
+    public event Action<string, int>? DistractionThresholdExceeded;
 
     public bool IsTrackingEnabled { get; set; } = true;
     public double IdleThresholdSeconds { get; set; } = 120;
@@ -65,6 +72,13 @@ public class ActivityTrackerService : IDisposable
             // App or title switched or became idle
             if (appName != _currentAppName || windowTitle != _currentWindowTitle)
             {
+                // Reset distraction tracking when app changes
+                if (_currentIsProductive == false)
+                {
+                    _consecutiveUnproductiveSeconds = 0;
+                    _distractionAlertFired = false;
+                }
+
                 EndCurrentSession();
 
                 // Start new session
@@ -76,6 +90,18 @@ public class ActivityTrackerService : IDisposable
                 _currentIsProductive = isProductive;
 
                 ActiveWindowChanged?.Invoke(_currentAppName, _currentWindowTitle, _currentCategory);
+            }
+            else if (!_currentIsProductive)
+            {
+                // Still on the same unproductive app — accumulate time
+                _consecutiveUnproductiveSeconds += 1; // polled every 1s
+                if (!_distractionAlertFired && _consecutiveUnproductiveSeconds >= DistractionThresholdSeconds)
+                {
+                    _distractionAlertFired = true;
+                    var appForAlert = _currentAppName ?? "Unknown";
+                    var minsForAlert = _consecutiveUnproductiveSeconds / 60;
+                    DistractionThresholdExceeded?.Invoke(appForAlert, minsForAlert);
+                }
             }
         }
     }

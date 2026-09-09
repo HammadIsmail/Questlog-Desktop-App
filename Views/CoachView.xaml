@@ -8,10 +8,29 @@
              d:DesignHeight="700" d:DesignWidth="900"
              d:DataContext="{d:DesignInstance vm:CoachViewModel}">
 
+    <UserControl.Resources>
+        <!-- Pulse animation for the listening indicator dot -->
+        <Storyboard x:Key="PulseStoryboard" RepeatBehavior="Forever">
+            <DoubleAnimation Storyboard.TargetName="ListeningDot"
+                             Storyboard.TargetProperty="Opacity"
+                             From="1.0" To="0.2" Duration="0:0:0.7"
+                             AutoReverse="True"/>
+        </Storyboard>
+    </UserControl.Resources>
+
+    <UserControl.Triggers>
+        <EventTrigger RoutedEvent="UserControl.Loaded">
+            <BeginStoryboard Storyboard="{StaticResource PulseStoryboard}" x:Name="PulseBegin"/>
+        </EventTrigger>
+    </UserControl.Triggers>
+
     <Grid Margin="{StaticResource ContentPadding}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="20" />
+            <RowDefinition Height="12" />
+            <!-- Partial transcript live preview -->
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="10" />
             <RowDefinition Height="*" />
             <RowDefinition Height="16" />
             <RowDefinition Height="Auto" />
@@ -21,15 +40,40 @@
         <Grid Grid.Row="0">
             <StackPanel>
                 <TextBlock Text="Dungeon Master AI Coach" Style="{StaticResource TextPageTitle}"/>
-                <TextBlock Text="Strategic guidance, accountability, and campaign insights based on your real performance." 
+                <TextBlock Text="Strategic guidance and accountability based on your real performance. Type or speak." 
                            Style="{StaticResource TextSecondary}" Margin="0,4,0,0"/>
             </StackPanel>
         </Grid>
 
+        <!-- Live Partial Transcript (visible only during voice) -->
+        <Border Grid.Row="2" 
+                Background="{StaticResource BrushSurfaceMuted}" 
+                BorderBrush="{StaticResource BrushBorder}"
+                BorderThickness="1" CornerRadius="6" Padding="12,8"
+                Visibility="{Binding IsVoiceActive, Converter={StaticResource BoolToVisibility}}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="8"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <!-- Pulsing dot -->
+                <Ellipse x:Name="ListeningDot" Grid.Column="0" 
+                         Width="8" Height="8" VerticalAlignment="Center"
+                         Fill="{StaticResource BrushAccent}"/>
+                <!-- Partial transcript text -->
+                <TextBlock Grid.Column="2" 
+                           Text="{Binding PartialTranscript, FallbackValue='Listening...'}"
+                           Style="{StaticResource TextBody}" FontStyle="Italic"
+                           Foreground="{StaticResource BrushTextSecondary}"
+                           TextWrapping="Wrap"/>
+            </Grid>
+        </Border>
+
         <!-- Main Chat Area -->
-        <Border Grid.Row="2" Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushBorder}"
+        <Border Grid.Row="4" Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushBorder}"
                 BorderThickness="1" CornerRadius="{StaticResource RadiusPanel}" Padding="20">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" x:Name="ChatScroll">
                 <ItemsControl ItemsSource="{Binding Messages}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
@@ -54,10 +98,13 @@
         </Border>
 
         <!-- Input Bar -->
-        <Grid Grid.Row="4">
+        <Grid Grid.Row="6">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="10" />
+                <!-- Voice button -->
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="10" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
@@ -65,7 +112,14 @@
                      Style="{StaticResource FormInput}" Padding="14,12" FontSize="14"
                      VerticalContentAlignment="Center"/>
 
-            <Button Grid.Column="2" Content="Consult Dungeon Master" Style="{StaticResource ButtonPrimary}" 
+            <!-- Voice Consult Toggle Button -->
+            <Button Grid.Column="2" 
+                    Content="{Binding VoiceStateLabel}"
+                    Command="{Binding ToggleVoiceCommand}"
+                    Padding="16,12" MinWidth="150"
+                    Style="{StaticResource ButtonSecondary}"/>
+
+            <Button Grid.Column="4" Content="Consult Dungeon Master" Style="{StaticResource ButtonPrimary}" 
                     Padding="20,12" Command="{Binding SendMessageCommand}"/>
         </Grid>
 

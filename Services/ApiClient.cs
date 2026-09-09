@@ -233,6 +233,29 @@ public class ApiClient
         catch { return []; }
     }
 
+    // ──────── Voice ────────
+    public async Task<string?> GetVoiceTokenAsync()
+    {
+        try
+        {
+            var result = await _http.GetFromJsonAsync<VoiceTokenResponse>("/api/v1/voice/token", JsonOpts);
+            return result?.Token;
+        }
+        catch { return null; }
+    }
+
+    public async Task<List<ScheduleItemRecord>> ShiftScheduleAsync(Guid itemId, int overrunMinutes)
+    {
+        try
+        {
+            var resp = await _http.PostAsJsonAsync("/api/v1/schedule/shift",
+                new { item_id = itemId, overrun_minutes = overrunMinutes }, JsonOpts);
+            if (!resp.IsSuccessStatusCode) return [];
+            return await resp.Content.ReadFromJsonAsync<List<ScheduleItemRecord>>(JsonOpts) ?? [];
+        }
+        catch { return []; }
+    }
+
     // ──────── Health ────────
     public async Task<bool> IsBackendAliveAsync()
     {

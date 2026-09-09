@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using Questlog.Common;
 using Questlog.Models;
@@ -13,6 +14,7 @@ public record ChatBubble(string Sender, string Message, bool IsUser, DateTime Ti
 public class CoachViewModel : ViewModelBase
 {
     private readonly ApiClient _apiClient;
+    private readonly VoiceService _voiceService;
 
     private string _userInput = string.Empty;
     public string UserInput
@@ -21,22 +23,52 @@ public class CoachViewModel : ViewModelBase
         set => SetProperty(ref _userInput, value);
     }
 
+    private string _voiceStateLabel = "🎙 Voice Consult";
+    public string VoiceStateLabel
+    {
+        get => _voiceStateLabel;
+        private set => SetProperty(ref _voiceStateLabel, value);
+    }
+
+    private bool _isVoiceActive;
+    public bool IsVoiceActive
+    {
+        get => _isVoiceActive;
+        private set => SetProperty(ref _isVoiceActive, value);
+    }
+
+    private string _partialTranscript = string.Empty;
+    public string PartialTranscript
+    {
+        get => _partialTranscript;
+        private set => SetProperty(ref _partialTranscript, value);
+    }
+
     public ObservableCollection<ChatBubble> Messages { get; } = new();
     public ObservableCollection<InsightRecord> Insights { get; } = new();
 
     public ICommand SendMessageCommand { get; }
     public ICommand LoadInsightsCommand { get; }
+    public ICommand ToggleVoiceCommand { get; }
 
-    public CoachViewModel(ApiClient apiClient)
+    public CoachViewModel(ApiClient apiClient, VoiceService voiceService)
     {
         _apiClient = apiClient;
+        _voiceService = voiceService;
 
         SendMessageCommand = new AsyncRelayCommand(SendMessageAsync);
         LoadInsightsCommand = new AsyncRelayCommand(LoadInsightsAsync);
+        ToggleVoiceCommand = new AsyncRelayCommand(ToggleVoiceAsync);
+
+        // Wire voice service events
+        _voiceService.StateChanged += OnVoiceStateChanged;
+        _voiceService.TranscriptPartialReceived += OnPartialTranscript;
+        _voiceService.TranscriptFinalReceived += OnFinalTranscript;
+        _voiceService.ErrorOccurred += OnVoiceError;
 
         Messages.Add(new ChatBubble(
             Sender: "Dungeon Master",
-            Message: "Greetings, adventurer. I observe all deeds and quiet moments in your quest. What guidance or counsel do you seek today?",
+            Message: "Greetings, adventurer. I observe all deeds and quiet moments in your quest. What guidance or counsel do you seek today? You may type or use Voice Consult.",
             IsUser: false,
             Timestamp: DateTime.Now
         ));
@@ -45,6 +77,65 @@ public class CoachViewModel : ViewModelBase
     public override async Task InitializeAsync()
     {
         await LoadInsightsAsync();
+    }
+
+    public async Task ToggleVoiceAsync()
+    {
+        if (_voiceService.IsActive)
+        {
+            await _voiceService.StopSessionAsync();
+        }
+        else
+        {
+            await _voiceService.StartSessionAsync();
+        }
+    }
+
+    private void OnVoiceStateChanged(VoiceState state)
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            IsVoiceActive = state is VoiceState.Connecting or VoiceState.Listening or VoiceState.Processing;
+            VoiceStateLabel = state switch
+            {
+                VoiceState.Connecting  => "⏳ Connecting...",
+                VoiceState.Listening   => "🔴 Listening...",
+                VoiceState.Processing  => "⏳ Thinking...",
+                VoiceState.Error       => "⚠ Voice Error",
+                _                      => "🎙 Voice Consult",
+            };
+
+            if (state == VoiceState.Idle)
+                PartialTranscript = string.Empty;
+        });
+    }
+
+    private void OnPartialTranscript(string text)
+    {
+        Application.Current.Dispatcher.Invoke(() => PartialTranscript = text);
+    }
+
+    private void OnFinalTranscript(string text)
+    {
+        Application.Current.Dispatcher.Invoke(async () =>
+        {
+            PartialTranscript = string.Empty;
+            UserInput = text;
+            await SendMessageAsync();
+        });
+    }
+
+    private void OnVoiceError(string error)
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            Messages.Add(new ChatBubble(
+                Sender: "System",
+                Message: $"Voice: {error}",
+                IsUser: false,
+                Timestamp: DateTime.Now
+            ));
+        });
     }
 
     public async Task SendMessageAsync()

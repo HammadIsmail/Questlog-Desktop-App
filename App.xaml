@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:Questlog"
              xmlns:vm="clr-namespace:Questlog.ViewModels"
-             xmlns:views="clr-namespace:Questlog.Views">
+             xmlns:views="clr-namespace:Questlog.Views"
+             xmlns:common="clr-namespace:Questlog.Common">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -11,6 +12,10 @@
                 <ResourceDictionary Source="Resources/Typography.xaml" />
                 <ResourceDictionary Source="Resources/Controls.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- Converters -->
+            <common:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+            <common:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
 
             <!-- ViewModel to View Mappings -->
             <DataTemplate DataType="{x:Type vm:DashboardViewModel}">

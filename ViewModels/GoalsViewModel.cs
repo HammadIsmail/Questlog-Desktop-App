@@ -124,6 +124,8 @@ public class GoalsViewModel : ViewModelBase
         bool ok = await _apiClient.CompleteGoalAsync(goal.Id);
         if (ok)
         {
+            // Fire toast notification (Phase 6)
+            Services.ToastService.NotifyQuestCompleted(goal.Title);
             await LoadGoalsAsync();
         }
     }
