@@ -21,4 +21,9 @@
     <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.1.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- Prevent System.Windows.Forms from colliding with WPF namespaces (UserControl, Application, Timer) -->
+    <Using Remove="System.Windows.Forms" />
+  </ItemGroup>
+
 </Project>
