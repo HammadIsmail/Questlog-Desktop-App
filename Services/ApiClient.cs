@@ -64,6 +64,24 @@ public class ApiClient
         catch { return null; }
     }
 
+    /// <summary>
+    /// Ensures the client has a valid JWT session by auto-authenticating the local desktop user.
+    /// </summary>
+    public async Task<bool> EnsureAuthenticatedAsync()
+    {
+        if (IsAuthenticated) return true;
+
+        const string defaultEmail = "adventurer@questlog.com";
+        const string defaultPass = "AdventurerPass123!";
+        const string defaultName = "Adventurer";
+
+        var login = await LoginAsync(defaultEmail, defaultPass);
+        if (login != null) return true;
+
+        var reg = await RegisterAsync(defaultEmail, defaultName, defaultPass);
+        return reg != null;
+    }
+
     // ──────── Activities ────────
     public async Task<List<ActivityRecord>> GetTodayActivitiesAsync()
     {
@@ -91,6 +109,7 @@ public class ApiClient
     {
         try
         {
+            await EnsureAuthenticatedAsync();
             var result = await _http.GetFromJsonAsync<List<GoalRecord>>("/api/v1/goals/today", JsonOpts);
             return result ?? [];
         }
@@ -101,6 +120,7 @@ public class ApiClient
     {
         try
         {
+            await EnsureAuthenticatedAsync();
             var result = await _http.GetFromJsonAsync<List<GoalRecord>>("/api/v1/goals", JsonOpts);
             return result ?? [];
         }
@@ -111,6 +131,7 @@ public class ApiClient
     {
         try
         {
+            await EnsureAuthenticatedAsync();
             var resp = await _http.PostAsJsonAsync("/api/v1/goals", goal, JsonOpts);
             if (!resp.IsSuccessStatusCode) return null;
             return await resp.Content.ReadFromJsonAsync<GoalRecord>(JsonOpts);
@@ -143,6 +164,7 @@ public class ApiClient
     {
         try
         {
+            await EnsureAuthenticatedAsync();
             var result = await _http.GetFromJsonAsync<List<ScheduleItemRecord>>("/api/v1/schedule/today", JsonOpts);
             return result ?? [];
         }
@@ -153,6 +175,7 @@ public class ApiClient
     {
         try
         {
+            await EnsureAuthenticatedAsync();
             var resp = await _http.PostAsJsonAsync("/api/v1/schedule/generate", new { });
             if (!resp.IsSuccessStatusCode) return [];
             return await resp.Content.ReadFromJsonAsync<List<ScheduleItemRecord>>(JsonOpts) ?? [];

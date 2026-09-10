@@ -16,6 +16,7 @@ public class ScheduleViewModel : ViewModelBase
     private Timer? _blockStartTimer;
 
     public ObservableCollection<ScheduleItemRecord> ScheduleItems { get; } = new();
+    public bool HasScheduleItems => ScheduleItems.Count > 0;
 
     public ICommand LoadScheduleCommand { get; }
     public ICommand GenerateAiScheduleCommand { get; }
@@ -24,6 +25,7 @@ public class ScheduleViewModel : ViewModelBase
     public ScheduleViewModel(ApiClient apiClient)
     {
         _apiClient = apiClient;
+        ScheduleItems.CollectionChanged += (_, _) => OnPropertyChanged(nameof(HasScheduleItems));
 
         LoadScheduleCommand = new AsyncRelayCommand(LoadScheduleAsync);
         GenerateAiScheduleCommand = new AsyncRelayCommand(GenerateAiScheduleAsync);

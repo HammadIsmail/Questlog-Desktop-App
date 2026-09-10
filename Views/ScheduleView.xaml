@@ -105,6 +105,19 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+
+                    <!-- Empty State Placeholder -->
+                    <Border Visibility="{Binding HasScheduleItems, Converter={StaticResource InverseBoolToVisibility}}"
+                            Padding="32,24" HorizontalAlignment="Center">
+                        <StackPanel HorizontalAlignment="Center">
+                            <TextBlock Text="No campaign blocks planned yet." 
+                                       Style="{StaticResource TextCardTitle}" 
+                                       HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                            <TextBlock Text="Click '⚡ Generate AI Schedule' above to auto-plan your day from active quests!" 
+                                       Style="{StaticResource TextSecondary}" 
+                                       HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
 
             </Border>

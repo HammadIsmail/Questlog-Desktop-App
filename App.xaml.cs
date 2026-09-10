@@ -29,6 +29,7 @@ public partial class App : Application
             Timeout = TimeSpan.FromSeconds(30)
         };
         _apiClient = new ApiClient(_httpClient);
+        _ = _apiClient.EnsureAuthenticatedAsync();
 
         // Services
         _trackerService = new ActivityTrackerService(_apiClient);
