@@ -12,33 +12,33 @@
         <StackPanel Margin="{StaticResource ContentPadding}">
             
             <!-- Top Hero Row: Score, Rank, Streak, Metrics -->
-            <Grid Margin="0,0,0,24">
+            <Grid Margin="0,0,0,16">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2.5*" />
-                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="1.3*" />
+                    <ColumnDefinition Width="12" />
                     <ColumnDefinition Width="1*" />
-                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="12" />
                     <ColumnDefinition Width="1*" />
-                    <ColumnDefinition Width="16" />
+                    <ColumnDefinition Width="12" />
                     <ColumnDefinition Width="1*" />
                 </Grid.ColumnDefinitions>
 
                 <!-- Hero Score Banner -->
                 <Border Grid.Column="0" Background="{StaticResource BrushSurface}"
                         BorderBrush="{StaticResource BrushBorder}" BorderThickness="1"
-                        CornerRadius="{StaticResource RadiusPanel}" Padding="20">
+                        CornerRadius="{StaticResource RadiusPanel}" Padding="14,12">
                     <Grid>
                         <StackPanel>
-                            <TextBlock Text="CAMPAIGN SCORE" Style="{StaticResource TextSectionTitle}" Margin="0,0,0,4"/>
+                            <TextBlock Text="CAMPAIGN SCORE" Style="{StaticResource TextSectionTitle}" Margin="0,0,0,2"/>
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding Score}" FontFamily="{StaticResource FontDisplay}" 
-                                           FontSize="44" FontWeight="Bold" Foreground="{StaticResource BrushAccent}"/>
-                                <TextBlock Text=" PTS" FontFamily="{StaticResource FontMono}" FontSize="16" 
-                                           Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Bottom" Margin="4,0,0,10"/>
+                                           FontSize="32" FontWeight="Bold" Foreground="{StaticResource BrushAccent}"/>
+                                <TextBlock Text=" PTS" FontFamily="{StaticResource FontMono}" FontSize="13" 
+                                           Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Bottom" Margin="4,0,0,6"/>
                             </StackPanel>
-                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                <Border Background="{StaticResource BrushAccentSoft}" CornerRadius="4" Padding="6,2">
-                                    <TextBlock Text="{Binding ScoreLevel}" FontSize="12" FontWeight="SemiBold" 
+                            <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                <Border Background="{StaticResource BrushAccentSoft}" CornerRadius="4" Padding="5,1">
+                                    <TextBlock Text="{Binding ScoreLevel}" FontSize="11" FontWeight="SemiBold" 
                                                Foreground="{StaticResource BrushAccentDark}"/>
                                 </Border>
                             </StackPanel>
@@ -49,39 +49,39 @@
                 <!-- Streak Card -->
                 <Border Grid.Column="2" Background="{StaticResource BrushSurface}"
                         BorderBrush="{StaticResource BrushBorder}" BorderThickness="1"
-                        CornerRadius="{StaticResource RadiusPanel}" Padding="16">
+                        CornerRadius="{StaticResource RadiusPanel}" Padding="12,10">
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="STREAK" Style="{StaticResource TextSectionTitle}" Margin="0,0,0,4"/>
+                        <TextBlock Text="STREAK" Style="{StaticResource TextSectionTitle}" Margin="0,0,0,2"/>
                         <TextBlock Text="{Binding StreakDays, StringFormat='{}{0} Days'}" 
-                                   FontFamily="{StaticResource FontMono}" FontSize="24" FontWeight="Bold" 
+                                   FontFamily="{StaticResource FontMono}" FontSize="20" FontWeight="Bold" 
                                    Foreground="{StaticResource BrushTextPrimary}"/>
-                        <TextBlock Text="Continuous effort" Style="{StaticResource TextSecondary}" Margin="0,4,0,0"/>
+                        <TextBlock Text="Continuous effort" Style="{StaticResource TextSecondary}" FontSize="11" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Productive Time Card -->
                 <Border Grid.Column="4" Background="{StaticResource BrushSurface}"
                         BorderBrush="{StaticResource BrushBorder}" BorderThickness="1"
-                        CornerRadius="{StaticResource RadiusPanel}" Padding="16">
+                        CornerRadius="{StaticResource RadiusPanel}" Padding="12,10">
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="PRODUCTIVE" Style="{StaticResource TextSectionTitle}" Margin="0,0,0,4"/>
+                        <TextBlock Text="PRODUCTIVE" Style="{StaticResource TextSectionTitle}" Margin="0,0,0,2"/>
                         <TextBlock Text="{Binding ProductiveMinutes, StringFormat='{}{0} min'}" 
-                                   FontFamily="{StaticResource FontMono}" FontSize="24" FontWeight="Bold" 
+                                   FontFamily="{StaticResource FontMono}" FontSize="20" FontWeight="Bold" 
                                    Foreground="{StaticResource BrushSuccess}"/>
-                        <TextBlock Text="Deep focus time" Style="{StaticResource TextSecondary}" Margin="0,4,0,0"/>
+                        <TextBlock Text="Deep focus time" Style="{StaticResource TextSecondary}" FontSize="11" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Border>
 
                 <!-- Current Focus App Card -->
                 <Border Grid.Column="6" Background="{StaticResource BrushSurface}"
                         BorderBrush="{StaticResource BrushBorder}" BorderThickness="1"
-                        CornerRadius="{StaticResource RadiusPanel}" Padding="16">
+                        CornerRadius="{StaticResource RadiusPanel}" Padding="12,10">
                     <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="CURRENT APP" Style="{StaticResource TextSectionTitle}" Margin="0,0,0,4"/>
+                        <TextBlock Text="CURRENT APP" Style="{StaticResource TextSectionTitle}" Margin="0,0,0,2"/>
                         <TextBlock Text="{Binding CurrentApp}" TextTrimming="CharacterEllipsis"
-                                   FontFamily="{StaticResource FontBody}" FontSize="16" FontWeight="SemiBold" 
+                                   FontFamily="{StaticResource FontBody}" FontSize="14" FontWeight="SemiBold" 
                                    Foreground="{StaticResource BrushTextPrimary}"/>
-                        <TextBlock Text="{Binding CurrentCategory}" Style="{StaticResource TextSecondary}" Margin="0,4,0,0"/>
+                        <TextBlock Text="{Binding CurrentCategory}" Style="{StaticResource TextSecondary}" FontSize="11" Margin="0,2,0,0"/>
                     </StackPanel>
                 </Border>
             </Grid>
@@ -89,15 +89,15 @@
             <!-- Main Content Split: Today Quests & Daily Schedule -->
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="1.2*" />
-                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="1*" />
+                    <ColumnDefinition Width="14" />
                     <ColumnDefinition Width="1*" />
                 </Grid.ColumnDefinitions>
 
                 <!-- Quests Column -->
                 <Border Grid.Column="0" Background="{StaticResource BrushSurface}"
                         BorderBrush="{StaticResource BrushBorder}" BorderThickness="1"
-                        CornerRadius="{StaticResource RadiusPanel}" Padding="20">
+                        CornerRadius="{StaticResource RadiusPanel}" Padding="16">
                     <StackPanel>
                         <Grid Margin="0,0,0,16">
                             <TextBlock Text="ACTIVE QUESTS (TODAY)" Style="{StaticResource TextSectionTitle}"/>
@@ -145,7 +145,7 @@
                 <!-- Schedule Column -->
                 <Border Grid.Column="2" Background="{StaticResource BrushSurface}"
                         BorderBrush="{StaticResource BrushBorder}" BorderThickness="1"
-                        CornerRadius="{StaticResource RadiusPanel}" Padding="20">
+                        CornerRadius="{StaticResource RadiusPanel}" Padding="16">
                     <StackPanel>
                         <TextBlock Text="SCHEDULED ITINERARY" Style="{StaticResource TextSectionTitle}" Margin="0,0,0,16"/>
 

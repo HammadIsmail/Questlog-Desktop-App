@@ -26,13 +26,43 @@ public class ApiClient
         _http = http;
     }
 
-    public bool IsAuthenticated => _accessToken != null;
+    public bool IsAuthenticated => !string.IsNullOrEmpty(_accessToken);
+    public string? CurrentUserEmail { get; private set; }
+    public string? CurrentUserName { get; private set; }
+    public event Action? AuthStateChanged;
 
     public void SetToken(string token)
     {
         _accessToken = token;
         _http.DefaultRequestHeaders.Authorization =
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+    }
+
+    public void Logout()
+    {
+        _accessToken = null;
+        CurrentUserEmail = null;
+        CurrentUserName = null;
+        _http.DefaultRequestHeaders.Authorization = null;
+        TokenStore.Clear();
+        AuthStateChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// Called at app startup — silently restores a saved session so the user
+    /// doesn't have to log in again after closing the app.
+    /// Returns true if a valid saved token was found.
+    /// </summary>
+    public bool TryRestoreSession()
+    {
+        var saved = TokenStore.TryLoad();
+        if (saved == null) return false;
+
+        SetToken(saved.Value.Token);
+        CurrentUserEmail = saved.Value.Email;
+        CurrentUserName = saved.Value.Name;
+        AuthStateChanged?.Invoke();
+        return true;
     }
 
     // ──────── Auth ────────
@@ -44,7 +74,14 @@ public class ApiClient
                 new { email, password });
             if (!resp.IsSuccessStatusCode) return null;
             var result = await resp.Content.ReadFromJsonAsync<TokenResponse>(JsonOpts);
-            if (result != null) SetToken(result.AccessToken);
+            if (result != null)
+            {
+                SetToken(result.AccessToken);
+                CurrentUserEmail = result.User?.Email ?? email;
+                CurrentUserName = result.User?.Name ?? "Adventurer";
+                TokenStore.Save(result.AccessToken, CurrentUserEmail, CurrentUserName);
+                AuthStateChanged?.Invoke();
+            }
             return result;
         }
         catch { return null; }
@@ -58,19 +95,24 @@ public class ApiClient
                 new { email, name, password });
             if (!resp.IsSuccessStatusCode) return null;
             var result = await resp.Content.ReadFromJsonAsync<TokenResponse>(JsonOpts);
-            if (result != null) SetToken(result.AccessToken);
+            if (result != null)
+            {
+                SetToken(result.AccessToken);
+                CurrentUserEmail = result.User?.Email ?? email;
+                CurrentUserName = result.User?.Name ?? name;
+                TokenStore.Save(result.AccessToken, CurrentUserEmail, CurrentUserName);
+                AuthStateChanged?.Invoke();
+            }
             return result;
         }
         catch { return null; }
     }
 
     /// <summary>
-    /// Ensures the client has a valid JWT session by auto-authenticating the local desktop user.
+    /// Quick guest login for one-click testing or default adventurers.
     /// </summary>
-    public async Task<bool> EnsureAuthenticatedAsync()
+    public async Task<bool> QuickLoginGuestAsync()
     {
-        if (IsAuthenticated) return true;
-
         const string defaultEmail = "adventurer@questlog.com";
         const string defaultPass = "AdventurerPass123!";
         const string defaultName = "Adventurer";
@@ -80,6 +122,15 @@ public class ApiClient
 
         var reg = await RegisterAsync(defaultEmail, defaultName, defaultPass);
         return reg != null;
+    }
+
+    /// <summary>
+    /// Ensures client has token, attempting guest login if unauthenticated.
+    /// </summary>
+    public async Task<bool> EnsureAuthenticatedAsync()
+    {
+        if (IsAuthenticated) return true;
+        return await QuickLoginGuestAsync();
     }
 
     // ──────── Activities ────────
@@ -125,6 +176,20 @@ public class ApiClient
             return result ?? [];
         }
         catch { return []; }
+    }
+
+    public async Task<ConversationGoalResponse?> CreateGoalsFromConversationAsync(
+        string text, IEnumerable<ConversationTurn>? history = null)
+    {
+        try
+        {
+            await EnsureAuthenticatedAsync();
+            var resp = await _http.PostAsJsonAsync("/api/v1/goals/from-conversation",
+                new { text, conversation_history = history ?? [] }, JsonOpts);
+            if (!resp.IsSuccessStatusCode) return null;
+            return await resp.Content.ReadFromJsonAsync<ConversationGoalResponse>(JsonOpts);
+        }
+        catch { return null; }
     }
 
     public async Task<GoalRecord?> CreateGoalAsync(GoalCreate goal)

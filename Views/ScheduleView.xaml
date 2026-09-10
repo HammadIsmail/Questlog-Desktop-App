@@ -27,6 +27,49 @@
                 </StackPanel>
             </Grid>
 
+            <!-- Loading Indicator Banner -->
+            <Border Background="{StaticResource BrushSurfaceMuted}" BorderBrush="{StaticResource BrushAccent}"
+                    BorderThickness="1" CornerRadius="6" Padding="14,10" Margin="0,0,0,16">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsLoading}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="12" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ProgressBar Grid.Column="0" IsIndeterminate="True" Width="100" Height="4"
+                                 Foreground="{StaticResource BrushAccent}" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="2" Text="Dungeon Master is calculating your optimal focus itinerary..." 
+                               Style="{StaticResource TextBody}" FontWeight="SemiBold"
+                               Foreground="{StaticResource BrushAccentDark}" VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+            <!-- Error Banner -->
+            <Border Background="#FDF2E9" BorderBrush="{StaticResource BrushAccent}" BorderThickness="1"
+                    CornerRadius="6" Padding="12,8" Margin="0,0,0,16">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding HasError}" Value="True">
+                                <Setter Property="Visibility" Value="Visible"/>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <TextBlock Text="{Binding ErrorMessage}" Foreground="{StaticResource BrushAccentDark}" FontSize="12"/>
+            </Border>
+
             <!-- Schedule Items Container -->
             <Border Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushBorder}"
                     BorderThickness="1" CornerRadius="{StaticResource RadiusPanel}" Padding="24">

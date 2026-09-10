@@ -27,21 +27,26 @@
     <Grid Margin="{StaticResource ContentPadding}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="12" />
+            <RowDefinition Height="8" />
             <!-- Partial transcript live preview -->
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="10" />
+            <RowDefinition Height="6" />
+            <!-- Main Chat Area -->
             <RowDefinition Height="*" />
-            <RowDefinition Height="16" />
+            <RowDefinition Height="10" />
+            <!-- Quick Prompts Row -->
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="8" />
+            <!-- Input Bar -->
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!-- Header -->
         <Grid Grid.Row="0">
             <StackPanel>
-                <TextBlock Text="Dungeon Master AI Coach" Style="{StaticResource TextPageTitle}"/>
-                <TextBlock Text="Strategic guidance and accountability based on your real performance. Type or speak." 
-                           Style="{StaticResource TextSecondary}" Margin="0,4,0,0"/>
+                <TextBlock Text="Dungeon Master AI Assistant" Style="{StaticResource TextPageTitle}"/>
+                <TextBlock Text="Speak or write your schedule, quests, or tactical coaching requests. The Dungeon Master orchestrates your campaign." 
+                           Style="{StaticResource TextSecondary}" Margin="0,3,0,0"/>
             </StackPanel>
         </Grid>
 
@@ -63,7 +68,7 @@
                          Fill="{StaticResource BrushAccent}"/>
                 <!-- Partial transcript text -->
                 <TextBlock Grid.Column="2" 
-                           Text="{Binding PartialTranscript, FallbackValue='Listening...'}"
+                           Text="{Binding PartialTranscript, FallbackValue='Listening to your voice...'}"
                            Style="{StaticResource TextBody}" FontStyle="Italic"
                            Foreground="{StaticResource BrushTextSecondary}"
                            TextWrapping="Wrap"/>
@@ -72,55 +77,89 @@
 
         <!-- Main Chat Area -->
         <Border Grid.Row="4" Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushBorder}"
-                BorderThickness="1" CornerRadius="{StaticResource RadiusPanel}" Padding="20">
+                BorderThickness="1" CornerRadius="{StaticResource RadiusPanel}" Padding="16,14">
             <ScrollViewer VerticalScrollBarVisibility="Auto" x:Name="ChatScroll">
-                <ItemsControl ItemsSource="{Binding Messages}">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border Margin="0,0,0,16" Padding="16" CornerRadius="8"
-                                    BorderThickness="1" BorderBrush="{StaticResource BrushBorder}"
-                                    Background="{StaticResource BrushSurfaceMuted}">
-                                <StackPanel>
-                                    <Grid Margin="0,0,0,6">
-                                        <TextBlock Text="{Binding Sender}" FontWeight="Bold" 
-                                                   Foreground="{StaticResource BrushAccentDark}" FontSize="13"/>
-                                        <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:hh:mm tt}'}" 
-                                                   FontFamily="{StaticResource FontMono}" FontSize="11" 
-                                                   Foreground="{StaticResource BrushTextSecondary}" HorizontalAlignment="Right"/>
-                                    </Grid>
-                                    <TextBlock Text="{Binding Message}" TextWrapping="Wrap" Style="{StaticResource TextBody}" LineHeight="20"/>
-                                </StackPanel>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                <StackPanel>
+                    <ItemsControl ItemsSource="{Binding Messages}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,12" Padding="14,12" CornerRadius="8"
+                                        BorderThickness="1" BorderBrush="{StaticResource BrushBorder}"
+                                        Background="{StaticResource BrushSurfaceMuted}">
+                                    <StackPanel>
+                                        <Grid Margin="0,0,0,4">
+                                            <TextBlock Text="{Binding Sender}" FontWeight="Bold" 
+                                                       Foreground="{StaticResource BrushAccentDark}" FontSize="12"/>
+                                            <TextBlock Text="{Binding Timestamp, StringFormat='{}{0:hh:mm tt}'}" 
+                                                       FontFamily="{StaticResource FontMono}" FontSize="10" 
+                                                       Foreground="{StaticResource BrushTextSecondary}" HorizontalAlignment="Right"/>
+                                        </Grid>
+                                        <TextBlock Text="{Binding Message}" TextWrapping="Wrap" Style="{StaticResource TextBody}" LineHeight="19"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Thinking / Loading Indicator Bubble -->
+                    <Border Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}"
+                            Margin="0,0,0,10" Padding="12,10" CornerRadius="8"
+                            BorderThickness="1" BorderBrush="{StaticResource BrushAccent}"
+                            Background="{StaticResource BrushSurfaceMuted}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <ProgressBar Grid.Column="0" IsIndeterminate="True" Width="70" Height="4"
+                                         Foreground="{StaticResource BrushAccent}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="2" Text="🧙 Dungeon Master is calculating strategy and orchestrating schedule..."
+                                       FontStyle="Italic" FontSize="12" Foreground="{StaticResource BrushAccentDark}" VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                </StackPanel>
             </ScrollViewer>
         </Border>
 
+        <!-- Quick Prompts Chips -->
+        <WrapPanel Grid.Row="6" VerticalAlignment="Center">
+            <TextBlock Text="Quick Prompts:" Style="{StaticResource TextSecondary}" FontSize="11" 
+                       VerticalAlignment="Center" Margin="0,0,8,4"/>
+            <Button Content="⚡ Plan my day" Style="{StaticResource ButtonGhost}" Padding="8,3" FontSize="11" Margin="0,0,6,4"
+                    Command="{Binding QuickPromptCommand}" CommandParameter="Plan my day"/>
+            <Button Content="🎙 'Schedule 2h coding &amp; 1h DSA'" Style="{StaticResource ButtonGhost}" Padding="8,3" FontSize="11" Margin="0,0,6,4"
+                    Command="{Binding QuickPromptCommand}" CommandParameter="Schedule 2 hours of coding and 1 hour of DSA"/>
+            <Button Content="📊 Today's Score &amp; Focus" Style="{StaticResource ButtonGhost}" Padding="8,3" FontSize="11" Margin="0,0,6,4"
+                    Command="{Binding QuickPromptCommand}" CommandParameter="What is my productivity score and focus time today?"/>
+            <Button Content="🛡 Distraction Audit" Style="{StaticResource ButtonGhost}" Padding="8,3" FontSize="11" Margin="0,0,6,4"
+                    Command="{Binding QuickPromptCommand}" CommandParameter="Audit my distractions and tell me what wasted my time"/>
+        </WrapPanel>
+
         <!-- Input Bar -->
-        <Grid Grid.Row="6">
+        <Grid Grid.Row="8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="8" />
                 <!-- Voice button -->
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="10" />
+                <ColumnDefinition Width="8" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
             <TextBox Grid.Column="0" Text="{Binding UserInput, UpdateSourceTrigger=PropertyChanged}" 
-                     Style="{StaticResource FormInput}" Padding="14,12" FontSize="14"
-                     VerticalContentAlignment="Center"/>
+                     Style="{StaticResource FormInput}" Padding="12,10" FontSize="13"
+                     VerticalContentAlignment="Center" KeyDown="TextBox_KeyDown"/>
 
             <!-- Voice Consult Toggle Button -->
             <Button Grid.Column="2" 
                     Content="{Binding VoiceStateLabel}"
                     Command="{Binding ToggleVoiceCommand}"
-                    Padding="16,12" MinWidth="150"
+                    Padding="14,10" MinWidth="130"
                     Style="{StaticResource ButtonSecondary}"/>
 
             <Button Grid.Column="4" Content="Consult Dungeon Master" Style="{StaticResource ButtonPrimary}" 
-                    Padding="20,12" Command="{Binding SendMessageCommand}"/>
+                    Padding="16,10" Command="{Binding SendMessageCommand}"/>
         </Grid>
 
     </Grid>

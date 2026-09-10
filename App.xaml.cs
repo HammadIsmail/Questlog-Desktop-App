@@ -12,6 +12,7 @@ public partial class App : Application
     private ApiClient? _apiClient;
     private ActivityTrackerService? _trackerService;
     private VoiceService? _voiceService;
+    private TtsService? _ttsService;
     private TrayService? _trayService;
     private MainWindow? _mainWindow;
 
@@ -29,11 +30,14 @@ public partial class App : Application
             Timeout = TimeSpan.FromSeconds(30)
         };
         _apiClient = new ApiClient(_httpClient);
-        _ = _apiClient.EnsureAuthenticatedAsync();
+
+        // ── Persistent login: restore saved JWT from Windows Credential Manager ──
+        _apiClient.TryRestoreSession();
 
         // Services
         _trackerService = new ActivityTrackerService(_apiClient);
         _voiceService = new VoiceService(_apiClient);
+        _ttsService = new TtsService(_httpClient);
         _trayService = new TrayService(_trackerService);
 
         // Wire distraction alert → Toast
@@ -41,36 +45,44 @@ public partial class App : Application
             ToastService.NotifyDistractionDetected(appName, minutes);
 
         // ViewModels
+        var authVm       = new AuthViewModel(_apiClient);
         var dashboardVm  = new DashboardViewModel(_apiClient, _trackerService);
         var scheduleVm   = new ScheduleViewModel(_apiClient);
-        var goalsVm      = new GoalsViewModel(_apiClient);
+        var goalsVm      = new GoalsViewModel(_apiClient, _voiceService!, _ttsService);
         var analyticsVm  = new AnalyticsViewModel(_apiClient);
         var activityVm   = new ActivityViewModel(_apiClient, _trackerService);
         var coachVm      = new CoachViewModel(_apiClient, _voiceService);
         var settingsVm   = new SettingsViewModel(_apiClient, _trackerService);
 
         var mainVm = new MainViewModel(
+            _apiClient, authVm,
             dashboardVm, scheduleVm, goalsVm, analyticsVm,
             activityVm, coachVm, settingsVm);
+
+        // Catch unhandled UI exceptions so the app never closes abruptly
+        DispatcherUnhandledException += (sender, args) =>
+        {
+            System.Diagnostics.Debug.WriteLine($"[DispatcherUnhandledException] {args.Exception}");
+            args.Handled = true;
+        };
 
         // Main Window
         _mainWindow = new MainWindow(mainVm);
 
-        // ── System Tray: intercept close → minimize to tray ──
+        // ── Window Closing: Clean exit ──
         _mainWindow.Closing += (_, closingArgs) =>
         {
-            // Only hide if tray service is active (not a real Shutdown())
             if (!_isShuttingDown)
             {
-                closingArgs.Cancel = true;
-                _mainWindow.Hide();
-                _trayService!.Show();
+                _isShuttingDown = true;
+                Shutdown();
             }
         };
 
         _trayService.OpenRequested += () =>
         {
             _mainWindow.Show();
+            _mainWindow.WindowState = WindowState.Normal;
             _mainWindow.Activate();
             _trayService.Hide();
         };
@@ -86,6 +98,7 @@ public partial class App : Application
         _trayService?.Dispose();
         _trackerService?.Dispose();
         _voiceService?.Dispose();
+        _ttsService?.Dispose();
         _httpClient?.Dispose();
         base.OnExit(e);
     }

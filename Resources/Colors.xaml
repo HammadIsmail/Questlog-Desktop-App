@@ -45,7 +45,7 @@
     <SolidColorBrush x:Key="BrushSidebar" Color="#EFECE4" />
 
     <!-- Spacing -->
-    <Thickness x:Key="ContentPadding">28,24,28,24</Thickness>
+    <Thickness x:Key="ContentPadding">20,16,20,16</Thickness>
     <Thickness x:Key="SectionGap">0,20,0,0</Thickness>
     <Thickness x:Key="ItemGap">0,8,0,0</Thickness>
 

@@ -1,8 +1,10 @@
 using System;
+using System.Diagnostics;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using NAudio.Wave;
 
@@ -22,8 +24,8 @@ public enum VoiceState
 
 /// <summary>
 /// Manages microphone capture and AssemblyAI streaming transcription.
-/// Uses NAudio for PCM capture and System.Net.WebSockets.ClientWebSocket
-/// for the AssemblyAI Streaming v3 WebSocket — no extra WebSocket NuGet needed.
+/// Uses NAudio for PCM capture, a Channel-based sequential send loop for reliable WebSocket streaming,
+/// and System.Net.WebSockets.ClientWebSocket for AssemblyAI Streaming v3.
 /// </summary>
 public class VoiceService : IDisposable
 {
@@ -32,6 +34,7 @@ public class VoiceService : IDisposable
     private ClientWebSocket? _socket;
     private WaveInEvent? _waveIn;
     private CancellationTokenSource? _cts;
+    private Channel<byte[]>? _audioChannel;
     private VoiceState _state = VoiceState.Idle;
 
     // 16 kHz, 16-bit, mono — required by AssemblyAI streaming v3
@@ -73,7 +76,17 @@ public class VoiceService : IDisposable
 
         try
         {
-            // 1. Obtain short-lived token from our backend (keeps master key safe)
+            // Verify microphone is available
+            if (WaveInEvent.DeviceCount == 0)
+            {
+                State = VoiceState.Error;
+                ErrorOccurred?.Invoke("No recording microphone detected. Please connect a microphone.");
+                return;
+            }
+
+            Debug.WriteLine($"[VoiceService] Found {WaveInEvent.DeviceCount} audio input device(s). Using default input.");
+
+            // 1. Obtain short-lived token from backend (keeps primary API key secure)
             var token = await _apiClient.GetVoiceTokenAsync();
             if (string.IsNullOrWhiteSpace(token))
             {
@@ -84,15 +97,25 @@ public class VoiceService : IDisposable
 
             // 2. Open WebSocket to AssemblyAI Streaming v3
             _socket = new ClientWebSocket();
-            var wsUri = new Uri($"wss://streaming.assemblyai.com/v3/ws?token={token}&sample_rate={SampleRate}&encoding=pcm_s16le");
+            var wsUri = new Uri($"wss://streaming.assemblyai.com/v3/ws?token={token}&sample_rate={SampleRate}&encoding=pcm_s16le&formatted_finals=true");
+            Debug.WriteLine($"[VoiceService] Connecting to AssemblyAI WebSocket: {wsUri}");
             await _socket.ConnectAsync(wsUri, _cts.Token);
+            Debug.WriteLine("[VoiceService] Connected to AssemblyAI Streaming v3!");
 
             State = VoiceState.Listening;
 
-            // 3. Start receive loop (runs on background task)
-            _ = Task.Run(() => ReceiveLoopAsync(_cts.Token), _cts.Token);
+            // 3. Create audio queue for sequential sending (prevents socket race conditions)
+            _audioChannel = Channel.CreateUnbounded<byte[]>(new UnboundedChannelOptions
+            {
+                SingleReader = true,
+                SingleWriter = true
+            });
 
-            // 4. Start NAudio microphone capture
+            // 4. Start send & receive background loops
+            _ = Task.Run(() => ReceiveLoopAsync(_cts.Token), _cts.Token);
+            _ = Task.Run(() => SendAudioLoopAsync(_cts.Token), _cts.Token);
+
+            // 5. Start NAudio microphone capture
             _waveIn = new WaveInEvent
             {
                 WaveFormat = new WaveFormat(SampleRate, BitsPerSample, Channels),
@@ -100,6 +123,7 @@ public class VoiceService : IDisposable
             };
             _waveIn.DataAvailable += OnAudioDataAvailable;
             _waveIn.StartRecording();
+            Debug.WriteLine("[VoiceService] Microphone recording started.");
         }
         catch (OperationCanceledException)
         {
@@ -107,6 +131,7 @@ public class VoiceService : IDisposable
         }
         catch (Exception ex)
         {
+            Debug.WriteLine($"[VoiceService Error] {ex}");
             State = VoiceState.Error;
             ErrorOccurred?.Invoke($"Voice session error: {ex.Message}");
             await CleanupAsync();
@@ -118,23 +143,27 @@ public class VoiceService : IDisposable
     {
         if (!IsActive) return;
 
-        _waveIn?.StopRecording();
+        try
+        {
+            _waveIn?.StopRecording();
+        }
+        catch { }
 
         try
         {
-            // Send end-of-stream signal per AssemblyAI protocol
+            // Send terminate session command per AssemblyAI v3 protocol
             if (_socket?.State == WebSocketState.Open)
             {
-                var endMsg = JsonSerializer.Serialize(new { terminate_session = true });
+                var endMsg = JsonSerializer.Serialize(new { type = "Terminate" });
                 var bytes = Encoding.UTF8.GetBytes(endMsg);
                 await _socket.SendAsync(new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
 
-                // Short wait for final transcript before closing
-                await Task.Delay(800);
+                // Short delay to allow remaining final transcript to arrive
+                await Task.Delay(500);
                 await _socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Session ended", CancellationToken.None);
             }
         }
-        catch { /* best-effort */ }
+        catch { /* best-effort cleanup */ }
         finally
         {
             _cts?.Cancel();
@@ -145,18 +174,41 @@ public class VoiceService : IDisposable
 
     private void OnAudioDataAvailable(object? sender, WaveInEventArgs e)
     {
-        if (_socket?.State != WebSocketState.Open || _cts?.IsCancellationRequested == true)
+        if (_audioChannel == null || _cts?.IsCancellationRequested == true || e.BytesRecorded <= 0)
             return;
 
-        // Send raw PCM bytes directly (binary frame) — AssemblyAI accepts binary PCM
-        var segment = new ArraySegment<byte>(e.Buffer, 0, e.BytesRecorded);
-        // Fire-and-forget on the socket (must be sequential; use a queue in production)
-        _ = _socket.SendAsync(segment, WebSocketMessageType.Binary, true, _cts!.Token);
+        // Copy audio buffer to prevent data corruption from NAudio buffer reuse
+        var chunk = new byte[e.BytesRecorded];
+        Array.Copy(e.Buffer, 0, chunk, 0, e.BytesRecorded);
+        _audioChannel.Writer.TryWrite(chunk);
+    }
+
+    private async Task SendAudioLoopAsync(CancellationToken ct)
+    {
+        try
+        {
+            while (!ct.IsCancellationRequested && _socket?.State == WebSocketState.Open && _audioChannel != null)
+            {
+                if (await _audioChannel.Reader.WaitToReadAsync(ct))
+                {
+                    while (_audioChannel.Reader.TryRead(out var chunk))
+                    {
+                        if (_socket.State != WebSocketState.Open) break;
+                        await _socket.SendAsync(new ArraySegment<byte>(chunk), WebSocketMessageType.Binary, true, ct);
+                    }
+                }
+            }
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[VoiceService Audio Send Error] {ex.Message}");
+        }
     }
 
     private async Task ReceiveLoopAsync(CancellationToken ct)
     {
-        var buffer = new byte[8192];
+        var buffer = new byte[16384];
         var sb = new StringBuilder();
 
         try
@@ -179,6 +231,7 @@ public class VoiceService : IDisposable
         catch (OperationCanceledException) { /* expected on stop */ }
         catch (Exception ex)
         {
+            Debug.WriteLine($"[VoiceService Receive Error] {ex.Message}");
             State = VoiceState.Error;
             ErrorOccurred?.Invoke($"Receive error: {ex.Message}");
         }
@@ -191,23 +244,80 @@ public class VoiceService : IDisposable
             using var doc = JsonDocument.Parse(json);
             var root = doc.RootElement;
 
-            // AssemblyAI v3 sends { "type": "partial_transcript" | "final_transcript", "text": "…" }
-            if (!root.TryGetProperty("type", out var typeProp)) return;
-            var type = typeProp.GetString();
-            var text = root.TryGetProperty("text", out var textProp) ? textProp.GetString() ?? "" : "";
+            string? msgType = null;
+            if (root.TryGetProperty("type", out var tProp))
+                msgType = tProp.GetString();
+            else if (root.TryGetProperty("message_type", out var mtProp))
+                msgType = mtProp.GetString();
 
-            if (type == "partial_transcript" && !string.IsNullOrWhiteSpace(text))
+            if (string.IsNullOrEmpty(msgType)) return;
+
+            Debug.WriteLine($"[AssemblyAI WS] Type={msgType}");
+
+            // AssemblyAI v3: SpeechStarted event
+            if (msgType.Equals("SpeechStarted", StringComparison.OrdinalIgnoreCase))
             {
                 State = VoiceState.Listening;
-                TranscriptPartialReceived?.Invoke(text);
+                return;
             }
-            else if (type == "final_transcript" && !string.IsNullOrWhiteSpace(text))
+
+            // AssemblyAI v3: Turn event
+            if (msgType.Equals("Turn", StringComparison.OrdinalIgnoreCase))
             {
-                State = VoiceState.Processing;
-                TranscriptFinalReceived?.Invoke(text);
+                string transcript = "";
+                if (root.TryGetProperty("transcript", out var trProp))
+                    transcript = trProp.GetString() ?? "";
+                if (string.IsNullOrWhiteSpace(transcript) && root.TryGetProperty("utterance", out var utProp))
+                    transcript = utProp.GetString() ?? "";
+
+                if (string.IsNullOrWhiteSpace(transcript)) return;
+
+                bool endOfTurn = root.TryGetProperty("end_of_turn", out var eotProp) && eotProp.GetBoolean();
+
+                if (!endOfTurn)
+                {
+                    State = VoiceState.Listening;
+                    TranscriptPartialReceived?.Invoke(transcript);
+                }
+                else
+                {
+                    State = VoiceState.Processing;
+                    TranscriptFinalReceived?.Invoke(transcript);
+                }
+                return;
+            }
+
+            // Fallback for legacy v2 or other event formats
+            string text = "";
+            if (root.TryGetProperty("text", out var textProp))
+                text = textProp.GetString() ?? "";
+            else if (root.TryGetProperty("transcript", out var trProp2))
+                text = trProp2.GetString() ?? "";
+
+            if (msgType.Equals("PartialTranscript", StringComparison.OrdinalIgnoreCase) ||
+                msgType.Equals("partial_transcript", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    State = VoiceState.Listening;
+                    TranscriptPartialReceived?.Invoke(text);
+                }
+            }
+            else if (msgType.Equals("FinalTranscript", StringComparison.OrdinalIgnoreCase) ||
+                     msgType.Equals("final_transcript", StringComparison.OrdinalIgnoreCase) ||
+                     msgType.Equals("TurnComplete", StringComparison.OrdinalIgnoreCase))
+            {
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    State = VoiceState.Processing;
+                    TranscriptFinalReceived?.Invoke(text);
+                }
             }
         }
-        catch { /* ignore malformed frames */ }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[AssemblyAI Parse Error] {ex.Message}");
+        }
     }
 
     private async Task CleanupAsync()
@@ -217,6 +327,12 @@ public class VoiceService : IDisposable
             _waveIn.DataAvailable -= OnAudioDataAvailable;
             _waveIn.Dispose();
             _waveIn = null;
+        }
+
+        if (_audioChannel != null)
+        {
+            _audioChannel.Writer.TryComplete();
+            _audioChannel = null;
         }
 
         if (_socket != null)

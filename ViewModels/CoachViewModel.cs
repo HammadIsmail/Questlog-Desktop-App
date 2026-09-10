@@ -50,6 +50,7 @@ public class CoachViewModel : ViewModelBase
     public ICommand SendMessageCommand { get; }
     public ICommand LoadInsightsCommand { get; }
     public ICommand ToggleVoiceCommand { get; }
+    public ICommand QuickPromptCommand { get; }
 
     public CoachViewModel(ApiClient apiClient, VoiceService voiceService)
     {
@@ -59,6 +60,14 @@ public class CoachViewModel : ViewModelBase
         SendMessageCommand = new AsyncRelayCommand(SendMessageAsync);
         LoadInsightsCommand = new AsyncRelayCommand(LoadInsightsAsync);
         ToggleVoiceCommand = new AsyncRelayCommand(ToggleVoiceAsync);
+        QuickPromptCommand = new AsyncRelayCommand(async param =>
+        {
+            if (param is string prompt && !string.IsNullOrWhiteSpace(prompt))
+            {
+                UserInput = prompt;
+                await SendMessageAsync();
+            }
+        });
 
         // Wire voice service events
         _voiceService.StateChanged += OnVoiceStateChanged;
@@ -68,7 +77,7 @@ public class CoachViewModel : ViewModelBase
 
         Messages.Add(new ChatBubble(
             Sender: "Dungeon Master",
-            Message: "Greetings, adventurer. I observe all deeds and quiet moments in your quest. What guidance or counsel do you seek today? You may type or use Voice Consult.",
+            Message: "Greetings, adventurer. I observe all deeds and quiet moments in your quest. Speak or write your itinerary (e.g., 'Schedule 2 hours of coding and 1 hour of DSA') or ask for guidance on your campaign.",
             IsUser: false,
             Timestamp: DateTime.Now
         ));

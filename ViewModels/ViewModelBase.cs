@@ -16,8 +16,16 @@ public abstract class ViewModelBase : ObservableObject
     public string? ErrorMessage
     {
         get => _errorMessage;
-        set => SetProperty(ref _errorMessage, value);
+        set
+        {
+            if (SetProperty(ref _errorMessage, value))
+            {
+                OnPropertyChanged(nameof(HasError));
+            }
+        }
     }
+
+    public bool HasError => !string.IsNullOrWhiteSpace(_errorMessage);
 
     public virtual Task InitializeAsync() => Task.CompletedTask;
 }

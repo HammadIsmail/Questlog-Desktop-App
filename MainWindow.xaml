@@ -6,8 +6,8 @@
         xmlns:vm="clr-namespace:Questlog.ViewModels"
         mc:Ignorable="d"
         Title="Questlog — Real-Life Dungeon Master" 
-        Height="800" Width="1200"
-        MinHeight="650" MinWidth="950"
+        Height="680" Width="1040"
+        MinHeight="540" MinWidth="820"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource BrushBackground}"
         d:DataContext="{d:DesignInstance vm:MainViewModel}">
@@ -48,17 +48,18 @@
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="230" />
+            <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <!-- Left Sidebar -->
-        <Border Grid.Column="0" Background="{StaticResource BrushSidebar}" 
-                BorderBrush="{StaticResource BrushBorder}" BorderThickness="0,0,1,0">
-            <Grid Margin="18,20,18,20">
+        <!-- Left Sidebar (Visible when Authenticated) -->
+        <Border Grid.Column="0" Width="205" Background="{StaticResource BrushSidebar}" 
+                BorderBrush="{StaticResource BrushBorder}" BorderThickness="0,0,1,0"
+                Visibility="{Binding IsAuthenticated, Converter={StaticResource BoolToVisibility}}">
+            <Grid Margin="12,14,12,14">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="24" />
+                    <RowDefinition Height="14" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
@@ -66,18 +67,18 @@
                 <!-- App Branding -->
                 <StackPanel Grid.Row="0">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Border Background="{StaticResource BrushAccent}" CornerRadius="6" Width="28" Height="28" Margin="0,0,10,0">
-                            <TextBlock Text="⚔" FontSize="16" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Border Background="{StaticResource BrushAccent}" CornerRadius="6" Width="26" Height="26" Margin="0,0,8,0">
+                            <TextBlock Text="⚔" FontSize="14" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-                        <TextBlock Text="QUESTLOG" FontFamily="{StaticResource FontDisplay}" FontSize="20" FontWeight="Bold" 
+                        <TextBlock Text="QUESTLOG" FontFamily="{StaticResource FontDisplay}" FontSize="18" FontWeight="Bold" 
                                    Foreground="{StaticResource BrushTextPrimary}" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <TextBlock Text="Real-Life Dungeon Master" Style="{StaticResource TextSecondary}" FontSize="11" Margin="38,2,0,0"/>
+                    <TextBlock Text="Real-Life Dungeon Master" Style="{StaticResource TextSecondary}" FontSize="10" Margin="34,2,0,0"/>
                 </StackPanel>
 
                 <!-- Navigation List -->
                 <StackPanel Grid.Row="2">
-                    <TextBlock Text="CAMPAIGN" Style="{StaticResource TextSectionTitle}" Margin="6,0,0,8"/>
+                    <TextBlock Text="CAMPAIGN" Style="{StaticResource TextSectionTitle}" Margin="6,0,0,4"/>
                     <Button Content="📊  Overview" Style="{StaticResource NavButton}" 
                             Command="{Binding NavigateToCommand}" CommandParameter="Dashboard"/>
                     <Button Content="📅  Daily Schedule" Style="{StaticResource NavButton}" 
@@ -85,7 +86,7 @@
                     <Button Content="🎯  Active Quests" Style="{StaticResource NavButton}" 
                             Command="{Binding NavigateToCommand}" CommandParameter="Goals"/>
 
-                    <TextBlock Text="INTELLIGENCE" Style="{StaticResource TextSectionTitle}" Margin="6,18,0,8"/>
+                    <TextBlock Text="INTELLIGENCE" Style="{StaticResource TextSectionTitle}" Margin="6,12,0,4"/>
                     <Button Content="📈  Analytics" Style="{StaticResource NavButton}" 
                             Command="{Binding NavigateToCommand}" CommandParameter="Analytics"/>
                     <Button Content="⏱  Window Tracker" Style="{StaticResource NavButton}" 
@@ -93,26 +94,48 @@
                     <Button Content="🧙  Dungeon Master AI" Style="{StaticResource NavButton}" 
                             Command="{Binding NavigateToCommand}" CommandParameter="Coach"/>
 
-                    <TextBlock Text="SYSTEM" Style="{StaticResource TextSectionTitle}" Margin="6,18,0,8"/>
+                    <TextBlock Text="SYSTEM" Style="{StaticResource TextSectionTitle}" Margin="6,12,0,4"/>
                     <Button Content="⚙  Settings" Style="{StaticResource NavButton}" 
                             Command="{Binding NavigateToCommand}" CommandParameter="Settings"/>
                 </StackPanel>
 
-                <!-- Bottom Telemetry Status -->
-                <Border Grid.Row="3" Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushBorder}"
-                        BorderThickness="1" CornerRadius="6" Padding="12,10">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <Border Grid.Column="0" Background="{StaticResource BrushSuccess}" CornerRadius="10" Width="8" Height="8" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                        <StackPanel Grid.Column="1">
-                            <TextBlock Text="Active Monitoring" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}"/>
-                            <TextBlock Text="Local Daemon Connected" FontSize="10" Foreground="{StaticResource BrushTextSecondary}"/>
-                        </StackPanel>
-                    </Grid>
-                </Border>
+                <!-- Bottom Telemetry Status & User Profile -->
+                <StackPanel Grid.Row="3">
+                    <!-- User Profile & Sign Out -->
+                    <Border Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushBorder}"
+                            BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding UserDisplay}" FontSize="11" FontWeight="SemiBold" 
+                                           Foreground="{StaticResource BrushTextPrimary}" TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="Adventurer" FontSize="9" Foreground="{StaticResource BrushTextSecondary}"/>
+                            </StackPanel>
+                            <Button Grid.Column="1" Content="Sign Out" Command="{Binding LogoutCommand}"
+                                    Style="{StaticResource ButtonGhost}" Padding="6,2" FontSize="10" 
+                                    VerticalAlignment="Center" Margin="4,0,0,0"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Telemetry Status -->
+                    <Border Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushBorder}"
+                            BorderThickness="1" CornerRadius="6" Padding="10,8">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Background="{StaticResource BrushSuccess}" CornerRadius="10" Width="7" Height="7" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Active Monitoring" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}"/>
+                                <TextBlock Text="Local Daemon Connected" FontSize="9" Foreground="{StaticResource BrushTextSecondary}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </StackPanel>
 
             </Grid>
         </Border>
@@ -120,22 +143,30 @@
         <!-- Right Content Area -->
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="60" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <!-- Top Header Bar -->
-            <Border Grid.Row="0" Background="{StaticResource BrushSurface}" 
-                    BorderBrush="{StaticResource BrushBorder}" BorderThickness="0,0,0,1" Padding="28,0">
+            <!-- Top Header Bar (Visible ONLY when logged in) -->
+            <Border Grid.Row="0" Height="46" Background="{StaticResource BrushSurface}" 
+                    BorderBrush="{StaticResource BrushBorder}" BorderThickness="0,0,0,1" Padding="20,0"
+                    Visibility="{Binding IsAuthenticated, Converter={StaticResource BoolToVisibility}}">
                 <Grid VerticalAlignment="Center">
                     <TextBlock Text="{Binding CurrentViewTitle}" FontFamily="{StaticResource FontDisplay}" 
-                               FontSize="18" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" 
+                               FontSize="16" FontWeight="SemiBold" Foreground="{StaticResource BrushTextPrimary}" 
                                VerticalAlignment="Center"/>
 
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                         <TextBlock Text="{Binding CurrentDateFormatted}" FontFamily="{StaticResource FontMono}" 
-                                   FontSize="12" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center"/>
+                                   FontSize="11" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center"/>
                     </StackPanel>
+
+                    <!-- Global Loader Progress Bar (Underneath Top Bar) -->
+                    <ProgressBar Height="3" IsIndeterminate="True" 
+                                 Foreground="{StaticResource BrushAccent}" 
+                                 Background="Transparent" BorderThickness="0" 
+                                 VerticalAlignment="Bottom" Margin="-20,0,-20,-1"
+                                 Visibility="{Binding IsGlobalLoading, Converter={StaticResource BoolToVisibility}}"/>
                 </Grid>
             </Border>
 

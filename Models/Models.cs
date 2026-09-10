@@ -29,13 +29,15 @@ public record ActivityRecord(
 );
 
 public record ActivityCreate(
-    [property: JsonPropertyName("app_name")] string AppName,
+    [property: JsonPropertyName("application")] string? AppName,
     [property: JsonPropertyName("window_title")] string? WindowTitle,
     [property: JsonPropertyName("category")] string Category,
-    [property: JsonPropertyName("start_time")] DateTime StartTime,
-    [property: JsonPropertyName("end_time")] DateTime EndTime,
+    [property: JsonPropertyName("started_at")] DateTime StartTime,
+    [property: JsonPropertyName("ended_at")] DateTime EndTime,
     [property: JsonPropertyName("duration_seconds")] int DurationSeconds,
-    [property: JsonPropertyName("is_productive")] bool IsProductive
+    [property: JsonPropertyName("is_productive")] bool IsProductive,
+    [property: JsonPropertyName("source")] string Source = "desktop",
+    [property: JsonPropertyName("is_planned")] bool IsPlanned = false
 );
 
 public record GoalRecord(
@@ -55,6 +57,24 @@ public record GoalCreate(
     [property: JsonPropertyName("priority")] string Priority = "medium",
     [property: JsonPropertyName("target_date")] DateTime? TargetDate = null,
     [property: JsonPropertyName("estimated_minutes")] int? EstimatedMinutes = null
+);
+
+public record ConversationGoalResponse(
+    [property: JsonPropertyName("created_goals")] List<GoalRecord> CreatedGoals,
+    [property: JsonPropertyName("assistant_reply")] string AssistantReply
+);
+
+/// <summary>One bubble in the voice chat UI.</summary>
+public record ChatMessage(string Role, string Text, DateTime Timestamp)
+{
+    public bool IsUser => Role == "user";
+    public bool IsAssistant => Role == "assistant";
+}
+
+/// <summary>Sent to backend as conversation history context.</summary>
+public record ConversationTurn(
+    [property: JsonPropertyName("role")] string Role,
+    [property: JsonPropertyName("text")] string Text
 );
 
 public record ScheduleItemRecord(
