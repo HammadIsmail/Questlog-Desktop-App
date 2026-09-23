@@ -16,19 +16,12 @@ public class GoalsViewModel : ViewModelBase
     private readonly VoiceService _voiceService;
     private readonly TtsService? _ttsService;
 
-    // ── Manual Goal Forge Fields ──
+    // ── Manual Input Fields ──
     private string _newGoalTitle = string.Empty;
     public string NewGoalTitle
     {
         get => _newGoalTitle;
         set => SetProperty(ref _newGoalTitle, value);
-    }
-
-    private string _newGoalDescription = string.Empty;
-    public string NewGoalDescription
-    {
-        get => _newGoalDescription;
-        set => SetProperty(ref _newGoalDescription, value);
     }
 
     private string _newGoalPriority = "medium";
@@ -45,14 +38,7 @@ public class GoalsViewModel : ViewModelBase
         set => SetProperty(ref _newGoalEstimateMinutes, value);
     }
 
-    // ── Voice Assistant State ──
-    private bool _isVoicePanelOpen;
-    public bool IsVoicePanelOpen
-    {
-        get => _isVoicePanelOpen;
-        set => SetProperty(ref _isVoicePanelOpen, value);
-    }
-
+    // ── Voice / Conversational State ──
     private bool _isVoiceListening;
     public bool IsVoiceListening
     {
@@ -60,7 +46,7 @@ public class GoalsViewModel : ViewModelBase
         set => SetProperty(ref _isVoiceListening, value);
     }
 
-    private string _voiceStatusText = "🎙️ Voice Assistant Ready. Speak your plan.";
+    private string _voiceStatusText = "🎙️ Click the mic or speak your quest";
     public string VoiceStatusText
     {
         get => _voiceStatusText;
@@ -71,8 +57,15 @@ public class GoalsViewModel : ViewModelBase
     public string SpokenTranscript
     {
         get => _spokenTranscript;
-        set => SetProperty(ref _spokenTranscript, value);
+        set
+        {
+            if (SetProperty(ref _spokenTranscript, value))
+            {
+                OnPropertyChanged(nameof(HasSpokenTranscript));
+            }
+        }
     }
+    public bool HasSpokenTranscript => !string.IsNullOrWhiteSpace(_spokenTranscript);
 
     private string _voiceInputText = string.Empty;
     public string VoiceInputText
@@ -81,32 +74,52 @@ public class GoalsViewModel : ViewModelBase
         set => SetProperty(ref _voiceInputText, value);
     }
 
-    private string? _assistantMessage;
-    public string? AssistantMessage
+    private string _assistantMessage = "What quest or task would you like to add?";
+    public string AssistantMessage
     {
         get => _assistantMessage;
+        set => SetProperty(ref _assistantMessage, value);
+    }
+
+    // ── Filter State ("all", "pending", "completed") ──
+    private string _selectedFilter = "all";
+    public string SelectedFilter
+    {
+        get => _selectedFilter;
         set
         {
-            if (SetProperty(ref _assistantMessage, value))
+            if (SetProperty(ref _selectedFilter, value))
             {
-                OnPropertyChanged(nameof(HasAssistantMessage));
+                ApplyFilter();
+                OnPropertyChanged(nameof(IsFilterAll));
+                OnPropertyChanged(nameof(IsFilterPending));
+                OnPropertyChanged(nameof(IsFilterCompleted));
             }
         }
     }
-    public bool HasAssistantMessage => !string.IsNullOrWhiteSpace(_assistantMessage);
 
+    public bool IsFilterAll => _selectedFilter == "all";
+    public bool IsFilterPending => _selectedFilter == "pending";
+    public bool IsFilterCompleted => _selectedFilter == "completed";
+
+    // ── Collections ──
     public ObservableCollection<GoalRecord> Goals { get; } = new();
+    public ObservableCollection<GoalRecord> FilteredGoals { get; } = new();
     public ObservableCollection<ChatMessage> ChatHistory { get; } = new();
 
+    public bool HasGoals => FilteredGoals.Count > 0;
+    public int ActiveCount => Goals.Count(g => !g.IsCompleted);
+    public int CompletedCount => Goals.Count(g => g.IsCompleted);
 
+    // ── Commands ──
     public ICommand LoadGoalsCommand { get; }
     public ICommand CreateGoalCommand { get; }
     public ICommand CompleteGoalCommand { get; }
     public ICommand DeleteGoalCommand { get; }
-    public ICommand ToggleVoicePanelCommand { get; }
     public ICommand ToggleVoiceListeningCommand { get; }
     public ICommand SubmitVoicePlanCommand { get; }
     public ICommand QuickSpokenPromptCommand { get; }
+    public ICommand SetFilterCommand { get; }
 
     public GoalsViewModel(ApiClient apiClient, VoiceService voiceService, TtsService? ttsService = null)
     {
@@ -118,19 +131,20 @@ public class GoalsViewModel : ViewModelBase
         CreateGoalCommand = new AsyncRelayCommand(CreateGoalAsync);
         CompleteGoalCommand = new AsyncRelayCommand(param => CompleteGoalAsync(param as GoalRecord));
         DeleteGoalCommand = new AsyncRelayCommand(param => DeleteGoalAsync(param as GoalRecord));
-        ToggleVoicePanelCommand = new AsyncRelayCommand(ToggleVoicePanelAsync);
         ToggleVoiceListeningCommand = new AsyncRelayCommand(ToggleVoiceListeningAsync);
         SubmitVoicePlanCommand = new AsyncRelayCommand(SubmitVoicePlanAsync);
+        SetFilterCommand = new RelayCommand(param => SelectedFilter = param?.ToString() ?? "all");
+
         QuickSpokenPromptCommand = new AsyncRelayCommand(async param =>
         {
             if (param is string prompt && !string.IsNullOrWhiteSpace(prompt))
             {
                 VoiceInputText = prompt;
-                await AddGoalsFromTextAsync(prompt);
+                await ProcessUserInputAsync(prompt);
             }
         });
 
-        // Wire voice events
+        // Wire voice streaming events
         _voiceService.StateChanged += OnVoiceStateChanged;
         _voiceService.TranscriptPartialReceived += OnPartialTranscript;
         _voiceService.TranscriptFinalReceived += OnFinalTranscript;
@@ -153,6 +167,7 @@ public class GoalsViewModel : ViewModelBase
             {
                 Goals.Add(g);
             }
+            ApplyFilter();
         }
         catch (Exception ex)
         {
@@ -164,45 +179,41 @@ public class GoalsViewModel : ViewModelBase
         }
     }
 
-    public async Task ToggleVoicePanelAsync()
+    private void ApplyFilter()
     {
-        IsVoicePanelOpen = !IsVoicePanelOpen;
-        if (IsVoicePanelOpen)
+        FilteredGoals.Clear();
+        var items = _selectedFilter switch
         {
-            if (ChatHistory.Count == 0)
-            {
-                var greeting = "Hey! I'm your Quest Master. Tell me about your plan for today. Just speak naturally! For example: I want to do 2 hours of DSA, then 1 hour of project work. I'll add them to your list!";
-                ChatHistory.Add(new ChatMessage("assistant", "👋 " + greeting, DateTime.Now));
-                AssistantMessage = ChatHistory.Last().Text;
-                _ = _ttsService?.SpeakAsync(greeting);
-            }
-            else
-            {
-                AssistantMessage = ChatHistory.Last().Text;
-            }
-            if (!_voiceService.IsActive)
-            {
-                await _voiceService.StartSessionAsync();
-            }
-        }
-        else
+            "pending" => Goals.Where(g => !g.IsCompleted),
+            "completed" => Goals.Where(g => g.IsCompleted),
+            _ => Goals
+        };
+
+        foreach (var item in items)
         {
-            _ttsService?.Stop();
-            if (_voiceService.IsActive)
-            {
-                await _voiceService.StopSessionAsync();
-            }
+            FilteredGoals.Add(item);
         }
+
+        OnPropertyChanged(nameof(HasGoals));
+        OnPropertyChanged(nameof(ActiveCount));
+        OnPropertyChanged(nameof(CompletedCount));
     }
 
     public async Task ToggleVoiceListeningAsync()
     {
         if (_voiceService.IsActive)
         {
+            _ttsService?.Stop();
             await _voiceService.StopSessionAsync();
+            VoiceStatusText = "🎙️ Microphone stopped. Click to speak again.";
         }
         else
         {
+            // Prompt the user verbally and in the bubble
+            var prompt = "What quest or task would you like to add?";
+            AssistantMessage = prompt;
+            _ = _ttsService?.SpeakAsync(prompt);
+
             await _voiceService.StartSessionAsync();
         }
     }
@@ -215,10 +226,10 @@ public class GoalsViewModel : ViewModelBase
             VoiceStatusText = state switch
             {
                 VoiceState.Connecting => "⏳ Connecting to AssemblyAI streaming...",
-                VoiceState.Listening => "🔴 Listening... Tell me your plan of the day",
+                VoiceState.Listening => "🔴 Listening... Speak your task, update, or deletion",
                 VoiceState.Processing => "⏳ Processing speech...",
-                VoiceState.Error => "⚠️ Voice connection issue",
-                _ => "🎙️ Microphone idle. Click to speak."
+                VoiceState.Error => "⚠️ Voice connection issue. Click mic to retry.",
+                _ => "🎙️ Click the mic or speak your quest"
             };
         });
     }
@@ -238,7 +249,7 @@ public class GoalsViewModel : ViewModelBase
         {
             SpokenTranscript = string.Empty;
             VoiceInputText = text;
-            await AddGoalsFromTextAsync(text);
+            await ProcessUserInputAsync(text);
         });
     }
 
@@ -246,7 +257,7 @@ public class GoalsViewModel : ViewModelBase
     {
         Application.Current.Dispatcher.Invoke(() =>
         {
-            AssistantMessage = $"Voice error: {err}. You can also type your plan below.";
+            AssistantMessage = $"Voice notice: {err}. You can also type your command below.";
         });
     }
 
@@ -255,17 +266,16 @@ public class GoalsViewModel : ViewModelBase
         if (string.IsNullOrWhiteSpace(VoiceInputText)) return;
         var text = VoiceInputText;
         VoiceInputText = string.Empty;
-        await AddGoalsFromTextAsync(text);
+        await ProcessUserInputAsync(text);
     }
 
-    public async Task AddGoalsFromTextAsync(string text)
+    public async Task ProcessUserInputAsync(string text)
     {
         if (string.IsNullOrWhiteSpace(text)) return;
 
-        // Add user bubble
+        // Record user turn in chat
         ChatHistory.Add(new ChatMessage("user", text, DateTime.Now));
 
-        // Build history context for the LLM (last 8 turns)
         var historyForApi = ChatHistory
             .TakeLast(8)
             .Select(m => new ConversationTurn(m.Role, m.Text))
@@ -277,28 +287,74 @@ public class GoalsViewModel : ViewModelBase
             var res = await _apiClient.CreateGoalsFromConversationAsync(text, historyForApi);
             if (res != null)
             {
+                // Handle created goals
                 if (res.CreatedGoals != null && res.CreatedGoals.Count > 0)
                 {
                     foreach (var g in res.CreatedGoals)
+                    {
                         Goals.Insert(0, g);
+                    }
                 }
-                var reply = res.AssistantReply ?? "Got it! What else would you like to add?";
+
+                // Handle updated goals
+                if (res.UpdatedGoals != null && res.UpdatedGoals.Count > 0)
+                {
+                    foreach (var updated in res.UpdatedGoals)
+                    {
+                        var idx = Goals.ToList().FindIndex(g => g.Id == updated.Id);
+                        if (idx >= 0)
+                        {
+                            Goals[idx] = updated;
+                        }
+                    }
+                }
+
+                // Handle delete all or bulk delete
+                if (res.Action == "delete_all")
+                {
+                    Goals.Clear();
+                }
+                else if (res.DeletedGoalIds != null && res.DeletedGoalIds.Count > 0)
+                {
+                    foreach (var delId in res.DeletedGoalIds)
+                    {
+                        var target = Goals.FirstOrDefault(g => g.Id == delId);
+                        if (target != null)
+                        {
+                            Goals.Remove(target);
+                        }
+                    }
+                }
+
+                ApplyFilter();
+
+                var reply = res.AssistantReply;
+                if (string.IsNullOrWhiteSpace(reply))
+                {
+                    reply = "Done! What else would you like to plan?";
+                }
+
                 ChatHistory.Add(new ChatMessage("assistant", reply, DateTime.Now));
                 AssistantMessage = reply;
                 _ = _ttsService?.SpeakAsync(reply);
+
+                // If asking for clarification, keep listening or re-arm mic
+                if (res.Action == "ask_clarification" && !_voiceService.IsActive)
+                {
+                    await Task.Delay(1200); // brief pause to allow TTS to begin
+                    await _voiceService.StartSessionAsync();
+                }
             }
             else
             {
-                var errMsg = "Hmm, I had trouble connecting. Make sure the backend is running and try again!";
-                ChatHistory.Add(new ChatMessage("assistant", errMsg, DateTime.Now));
+                var errMsg = "Could not reach the quest service. Please ensure the backend is running.";
                 AssistantMessage = errMsg;
                 _ = _ttsService?.SpeakAsync(errMsg);
             }
         }
         catch (Exception ex)
         {
-            var errMsg = $"Something went wrong: {ex.Message}";
-            ChatHistory.Add(new ChatMessage("assistant", errMsg, DateTime.Now));
+            var errMsg = $"Error: {ex.Message}";
             AssistantMessage = errMsg;
             _ = _ttsService?.SpeakAsync("Something went wrong. Please try again.");
         }
@@ -317,7 +373,7 @@ public class GoalsViewModel : ViewModelBase
         {
             var request = new GoalCreate(
                 Title: NewGoalTitle.Trim(),
-                Description: string.IsNullOrWhiteSpace(NewGoalDescription) ? null : NewGoalDescription.Trim(),
+                Description: null,
                 Priority: NewGoalPriority,
                 TargetDate: DateTime.UtcNow.Date,
                 EstimatedMinutes: NewGoalEstimateMinutes
@@ -327,9 +383,10 @@ public class GoalsViewModel : ViewModelBase
             if (created != null)
             {
                 Goals.Insert(0, created);
+                ApplyFilter();
                 NewGoalTitle = string.Empty;
-                NewGoalDescription = string.Empty;
                 NewGoalEstimateMinutes = 30;
+                AssistantMessage = $"Added '{created.Title}' ({created.Priority} priority) to your quest log!";
             }
         }
         catch (Exception ex)
@@ -350,6 +407,8 @@ public class GoalsViewModel : ViewModelBase
         {
             ToastService.NotifyQuestCompleted(goal.Title);
             await LoadGoalsAsync();
+            AssistantMessage = $"🎉 Quest completed: '{goal.Title}'! Experience awarded.";
+            _ = _ttsService?.SpeakAsync($"Awesome job completing {goal.Title}!");
         }
     }
 
@@ -360,6 +419,8 @@ public class GoalsViewModel : ViewModelBase
         if (ok)
         {
             Goals.Remove(goal);
+            ApplyFilter();
+            AssistantMessage = $"Removed '{goal.Title}' from quests.";
         }
     }
 }

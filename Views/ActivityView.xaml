@@ -33,7 +33,64 @@
                 <StackPanel>
                     <TextBlock Text="RECENT APPLICATION SESSIONS" Style="{StaticResource TextSectionTitle}" Margin="0,0,0,16"/>
 
-                    <ItemsControl ItemsSource="{Binding Activities}">
+                    <!-- Skeleton Loading Rows (When IsLoading is true) -->
+                    <StackPanel Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}">
+                        <Border BorderBrush="{StaticResource BrushBorder}" BorderThickness="0,0,0,1" Padding="0,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="110" />
+                                    <ColumnDefinition Width="90" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <Border Style="{StaticResource SkeletonLine}" Width="100" Height="14" Margin="0,0,0,4"/>
+                                    <Border Style="{StaticResource SkeletonLine}" Width="60" Height="10"/>
+                                </StackPanel>
+                                <Border Grid.Column="1" Style="{StaticResource SkeletonLine}" Width="260" Height="13" Margin="10,0"/>
+                                <Border Grid.Column="2" Style="{StaticResource SkeletonLine}" Width="70" Height="12"/>
+                                <Border Grid.Column="3" Style="{StaticResource SkeletonBadge}" HorizontalAlignment="Right"/>
+                            </Grid>
+                        </Border>
+                        <Border BorderBrush="{StaticResource BrushBorder}" BorderThickness="0,0,0,1" Padding="0,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="110" />
+                                    <ColumnDefinition Width="90" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <Border Style="{StaticResource SkeletonLine}" Width="120" Height="14" Margin="0,0,0,4"/>
+                                    <Border Style="{StaticResource SkeletonLine}" Width="70" Height="10"/>
+                                </StackPanel>
+                                <Border Grid.Column="1" Style="{StaticResource SkeletonLine}" Width="310" Height="13" Margin="10,0"/>
+                                <Border Grid.Column="2" Style="{StaticResource SkeletonLine}" Width="80" Height="12"/>
+                                <Border Grid.Column="3" Style="{StaticResource SkeletonBadge}" HorizontalAlignment="Right"/>
+                            </Grid>
+                        </Border>
+                        <Border BorderBrush="{StaticResource BrushBorder}" BorderThickness="0,0,0,1" Padding="0,12">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="110" />
+                                    <ColumnDefinition Width="90" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <Border Style="{StaticResource SkeletonLine}" Width="90" Height="14" Margin="0,0,0,4"/>
+                                    <Border Style="{StaticResource SkeletonLine}" Width="50" Height="10"/>
+                                </StackPanel>
+                                <Border Grid.Column="1" Style="{StaticResource SkeletonLine}" Width="200" Height="13" Margin="10,0"/>
+                                <Border Grid.Column="2" Style="{StaticResource SkeletonLine}" Width="65" Height="12"/>
+                                <Border Grid.Column="3" Style="{StaticResource SkeletonBadge}" HorizontalAlignment="Right"/>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+
+                    <!-- Real Activity Items (When IsLoading is false) -->
+                    <ItemsControl ItemsSource="{Binding Activities}"
+                                  Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVisibility}}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border BorderBrush="{StaticResource BrushBorder}" BorderThickness="0,0,0,1" Padding="0,12">

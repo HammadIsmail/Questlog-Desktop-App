@@ -1,11 +1,11 @@
-﻿<UserControl x:Class="Questlog.Views.GoalsView"
+<UserControl x:Class="Questlog.Views.GoalsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:vm="clr-namespace:Questlog.ViewModels"
              mc:Ignorable="d" 
-             d:DesignHeight="750" d:DesignWidth="900"
+             d:DesignHeight="850" d:DesignWidth="940"
              d:DataContext="{d:DesignInstance vm:GoalsViewModel}"
              x:Name="GoalsRoot">
 
@@ -14,17 +14,17 @@
         <Storyboard x:Key="OrbPulse" RepeatBehavior="Forever">
             <DoubleAnimation Storyboard.TargetName="OrbGlow"
                              Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
-                             From="1.0" To="1.4" Duration="0:0:0.9" AutoReverse="True">
+                             From="1.0" To="1.35" Duration="0:0:0.85" AutoReverse="True">
                 <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
             </DoubleAnimation>
             <DoubleAnimation Storyboard.TargetName="OrbGlow"
                              Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
-                             From="1.0" To="1.4" Duration="0:0:0.9" AutoReverse="True">
+                             From="1.0" To="1.35" Duration="0:0:0.85" AutoReverse="True">
                 <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
             </DoubleAnimation>
             <DoubleAnimation Storyboard.TargetName="OrbGlow"
                              Storyboard.TargetProperty="Opacity"
-                             From="0.35" To="0.9" Duration="0:0:0.9" AutoReverse="True">
+                             From="0.3" To="0.85" Duration="0:0:0.85" AutoReverse="True">
                 <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
             </DoubleAnimation>
         </Storyboard>
@@ -32,410 +32,520 @@
         <!-- Waveform animations -->
         <Storyboard x:Key="Wave1" RepeatBehavior="Forever">
             <DoubleAnimation Storyboard.TargetName="Bar1" Storyboard.TargetProperty="Height"
-                             From="6" To="38" Duration="0:0:0.45" AutoReverse="True">
+                             From="6" To="32" Duration="0:0:0.4" AutoReverse="True">
                 <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
             </DoubleAnimation>
         </Storyboard>
         <Storyboard x:Key="Wave2" RepeatBehavior="Forever">
             <DoubleAnimation Storyboard.TargetName="Bar2" Storyboard.TargetProperty="Height"
-                             From="10" To="52" Duration="0:0:0.6" AutoReverse="True" BeginTime="0:0:0.1">
+                             From="8" To="44" Duration="0:0:0.55" AutoReverse="True" BeginTime="0:0:0.08">
                 <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
             </DoubleAnimation>
         </Storyboard>
         <Storyboard x:Key="Wave3" RepeatBehavior="Forever">
             <DoubleAnimation Storyboard.TargetName="Bar3" Storyboard.TargetProperty="Height"
-                             From="4" To="60" Duration="0:0:0.5" AutoReverse="True" BeginTime="0:0:0.05">
+                             From="5" To="52" Duration="0:0:0.45" AutoReverse="True" BeginTime="0:0:0.04">
                 <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
             </DoubleAnimation>
         </Storyboard>
         <Storyboard x:Key="Wave4" RepeatBehavior="Forever">
             <DoubleAnimation Storyboard.TargetName="Bar4" Storyboard.TargetProperty="Height"
-                             From="8" To="44" Duration="0:0:0.55" AutoReverse="True" BeginTime="0:0:0.2">
+                             From="8" To="38" Duration="0:0:0.5" AutoReverse="True" BeginTime="0:0:0.12">
                 <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
             </DoubleAnimation>
         </Storyboard>
         <Storyboard x:Key="Wave5" RepeatBehavior="Forever">
             <DoubleAnimation Storyboard.TargetName="Bar5" Storyboard.TargetProperty="Height"
-                             From="6" To="36" Duration="0:0:0.42" AutoReverse="True" BeginTime="0:0:0.15">
+                             From="6" To="28" Duration="0:0:0.38" AutoReverse="True" BeginTime="0:0:0.1">
                 <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
             </DoubleAnimation>
         </Storyboard>
     </UserControl.Resources>
 
-    <!-- Root Grid to layer overlay on top of content -->
-    <Grid>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="{StaticResource ContentPadding}">
 
-        <!-- ══ MAIN CONTENT ══ -->
-        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-            <StackPanel Margin="{StaticResource ContentPadding}">
+            <!-- ═══════════════════════════════════════════════════════════════════
+                 SECTION 1: THE INTEGRATED AI MIC CONSOLE (Top of the Screen)
+                 ═══════════════════════════════════════════════════════════════════ -->
+            <Border Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushBorder}"
+                    BorderThickness="1" CornerRadius="{StaticResource RadiusPanel}" Padding="20,18" Margin="0,0,0,18">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
-                <!-- Page header -->
-                <Grid Margin="0,0,0,16">
-                    <StackPanel>
-                        <TextBlock Text="Active Quests" Style="{StaticResource TextPageTitle}"/>
-                        <TextBlock Text="Define your daily objectives or speak naturally to have AI forge them into your campaign."
-                                   Style="{StaticResource TextSecondary}" Margin="0,3,0,0"/>
-                    </StackPanel>
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Content="Refresh Quests" Style="{StaticResource ButtonGhost}"
-                                Command="{Binding LoadGoalsCommand}" Margin="0,0,10,0"/>
-                        <Button Style="{StaticResource ButtonPrimary}"
-                                Command="{Binding ToggleVoicePanelCommand}" Padding="16,10">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="&#x1F399;" FontSize="15" VerticalAlignment="Center" Margin="0,0,7,0"/>
-                                <TextBlock Text="Speak Daily Plan" VerticalAlignment="Center"/>
-                            </StackPanel>
-                        </Button>
-                    </StackPanel>
-                </Grid>
-
-                <!-- Manual Quest Forge -->
-                <Border Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushBorder}"
-                        BorderThickness="1" CornerRadius="{StaticResource RadiusPanel}" Padding="20" Margin="0,0,0,24">
-                    <StackPanel>
-                        <TextBlock Text="FORGE NEW QUEST (MANUAL)" Style="{StaticResource TextSectionTitle}" Margin="0,0,0,14"/>
-                        <Grid Margin="0,0,0,10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2*"/>
-                                <ColumnDefinition Width="16"/>
-                                <ColumnDefinition Width="1*"/>
-                                <ColumnDefinition Width="16"/>
-                                <ColumnDefinition Width="1*"/>
-                                <ColumnDefinition Width="16"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="Quest Title" Style="{StaticResource TextSecondary}" Margin="0,0,0,4"/>
-                                <TextBox Text="{Binding NewGoalTitle, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FormInput}"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2">
-                                <TextBlock Text="Priority" Style="{StaticResource TextSecondary}" Margin="0,0,0,4"/>
-                                <ComboBox SelectedValuePath="Content" SelectedValue="{Binding NewGoalPriority}">
-                                    <ComboBoxItem Content="high" IsSelected="True"/>
-                                    <ComboBoxItem Content="medium"/>
-                                    <ComboBoxItem Content="low"/>
-                                </ComboBox>
-                            </StackPanel>
-                            <StackPanel Grid.Column="4">
-                                <TextBlock Text="Estimate (min)" Style="{StaticResource TextSecondary}" Margin="0,0,0,4"/>
-                                <TextBox Text="{Binding NewGoalEstimateMinutes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FormInput}"/>
-                            </StackPanel>
-                            <Button Grid.Column="6" Content="Accept Quest" VerticalAlignment="Bottom"
-                                    Style="{StaticResource ButtonPrimary}" Padding="18,10"
-                                    Command="{Binding CreateGoalCommand}"/>
-                        </Grid>
-                        <StackPanel Margin="0,4,0,0">
-                            <TextBlock Text="Notes / Victory Conditions (Optional)" Style="{StaticResource TextSecondary}" Margin="0,0,0,4"/>
-                            <TextBox Text="{Binding NewGoalDescription, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource FormInput}"/>
+                    <!-- Top Bar: Title + Mic Status -->
+                    <Grid Grid.Row="0" Margin="0,0,0,12">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Background="{StaticResource BrushAccent}" CornerRadius="4" Width="22" Height="22" Margin="0,0,8,0">
+                                <TextBlock Text="🎙️" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="AI VOICE QUEST MASTER" Style="{StaticResource TextSectionTitle}" VerticalAlignment="Center"/>
                         </StackPanel>
+
+                        <!-- Live Status Badge -->
+                        <Border HorizontalAlignment="Right" VerticalAlignment="Center"
+                                Background="{StaticResource BrushSurfaceMuted}" BorderBrush="{StaticResource BrushBorder}"
+                                BorderThickness="1" CornerRadius="12" Padding="10,4">
+                            <TextBlock Text="{Binding VoiceStatusText}" FontSize="11" FontWeight="SemiBold" 
+                                       Foreground="{StaticResource BrushTextSecondary}"/>
+                        </Border>
+                    </Grid>
+
+                    <!-- Central Interactive Mic Area -->
+                    <Grid Grid.Row="1" Margin="0,4,0,14">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Glowing Mic Button + Orb -->
+                        <Grid Grid.Column="0" Width="100" Height="100" Margin="0,0,18,0">
+                            <!-- Animated Glow Ring (active when listening) -->
+                            <Ellipse x:Name="OrbGlow" Width="96" Height="96"
+                                     Opacity="0" RenderTransformOrigin="0.5,0.5">
+                                <Ellipse.RenderTransform>
+                                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                                </Ellipse.RenderTransform>
+                                <Ellipse.Fill>
+                                    <RadialGradientBrush>
+                                        <GradientStop Color="#80D85C32" Offset="0"/>
+                                        <GradientStop Color="#00D85C32" Offset="1"/>
+                                    </RadialGradientBrush>
+                                </Ellipse.Fill>
+                            </Ellipse>
+
+                            <!-- Physical Push Mic Button -->
+                            <Button Width="72" Height="72" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                    Command="{Binding ToggleVoiceListeningCommand}"
+                                    Cursor="Hand" ToolTip="Click to speak (add, clarify priority/deadline, update, or delete quests)">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Grid>
+                                            <Ellipse Width="72" Height="72">
+                                                <Ellipse.Fill>
+                                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                        <GradientStop Color="#FFE8612A" Offset="0"/>
+                                                        <GradientStop Color="#FFD85C32" Offset="1"/>
+                                                    </LinearGradientBrush>
+                                                </Ellipse.Fill>
+                                                <Ellipse.Effect>
+                                                    <DropShadowEffect Color="#D85C32" BlurRadius="16" ShadowDepth="0" Opacity="0.55"/>
+                                                </Ellipse.Effect>
+                                            </Ellipse>
+                                            <TextBlock Text="🎙️" FontSize="26" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </Grid>
+
+                        <!-- Dialogue Box & Audio Feedback -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <!-- Assistant Speech Bubble -->
+                            <Border Background="{StaticResource BrushSurfaceMuted}" BorderBrush="{StaticResource BrushBorder}"
+                                    BorderThickness="1" CornerRadius="8" Padding="14,10" Margin="0,0,0,8">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="⚔️" FontSize="16" Margin="0,0,10,0" VerticalAlignment="Top"/>
+                                    <TextBlock Grid.Column="1" Text="{Binding AssistantMessage}" 
+                                               FontFamily="{StaticResource FontBody}" FontSize="13" 
+                                               Foreground="{StaticResource BrushTextPrimary}" FontWeight="Medium" 
+                                               TextWrapping="Wrap"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Live Spoken Transcript or Waveform -->
+                            <Grid Height="28">
+                                <!-- Waveform Bars (shown while actively listening) -->
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                                            Visibility="{Binding IsVoiceListening, Converter={StaticResource BoolToVisibility}}">
+                                    <TextBlock Text="Listening:" FontSize="11" FontWeight="SemiBold" 
+                                               Foreground="{StaticResource BrushAccentDark}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                    <Rectangle x:Name="Bar1" Width="4" Height="6" RadiusX="2" RadiusY="2" 
+                                               Fill="{StaticResource BrushAccent}" VerticalAlignment="Center" Margin="2,0"/>
+                                    <Rectangle x:Name="Bar2" Width="4" Height="10" RadiusX="2" RadiusY="2" 
+                                               Fill="{StaticResource BrushAccent}" VerticalAlignment="Center" Margin="2,0"/>
+                                    <Rectangle x:Name="Bar3" Width="4" Height="5" RadiusX="2" RadiusY="2" 
+                                               Fill="{StaticResource BrushAccentDark}" VerticalAlignment="Center" Margin="2,0"/>
+                                    <Rectangle x:Name="Bar4" Width="4" Height="8" RadiusX="2" RadiusY="2" 
+                                               Fill="{StaticResource BrushAccent}" VerticalAlignment="Center" Margin="2,0"/>
+                                    <Rectangle x:Name="Bar5" Width="4" Height="6" RadiusX="2" RadiusY="2" 
+                                               Fill="{StaticResource BrushAccent}" VerticalAlignment="Center" Margin="2,0"/>
+
+                                    <!-- Live partial transcript -->
+                                    <TextBlock Text="{Binding SpokenTranscript}" 
+                                               FontStyle="Italic" FontSize="12" Foreground="{StaticResource BrushTextSecondary}"
+                                               VerticalAlignment="Center" Margin="10,0,0,0" TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+
+                                <!-- Idle hint (when not listening) -->
+                                <TextBlock Text="Click the microphone or type below to create, update, or complete quests."
+                                           Style="{StaticResource TextSecondary}" FontSize="11" VerticalAlignment="Center"
+                                           Visibility="{Binding IsVoiceListening, Converter={StaticResource InverseBoolToVisibility}}"/>
+                            </Grid>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Text Input Fallback Bar (Type quest or voice command) -->
+                    <Border Grid.Row="2" Background="{StaticResource BrushSurfaceMuted}" BorderBrush="{StaticResource BrushBorder}"
+                            BorderThickness="1" CornerRadius="6" Padding="4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Text="{Binding VoiceInputText, UpdateSourceTrigger=PropertyChanged}"
+                                     Background="Transparent" BorderThickness="0"
+                                     FontSize="13" Padding="10,6" VerticalContentAlignment="Center"
+                                     CaretBrush="{StaticResource BrushTextPrimary}">
+                                <TextBox.InputBindings>
+                                    <KeyBinding Key="Enter" Command="{Binding SubmitVoicePlanCommand}"/>
+                                </TextBox.InputBindings>
+                            </TextBox>
+                            <Button Grid.Column="1" Command="{Binding SubmitVoicePlanCommand}"
+                                    Style="{StaticResource ButtonPrimary}" Padding="16,6" Margin="2"
+                                    Content="Send ↵"/>
+                        </Grid>
+                    </Border>
+
+                    <!-- Quick Command Chips -->
+                    <WrapPanel Grid.Row="3" Margin="0,10,0,0">
+                        <TextBlock Text="Try speaking or clicking:" Style="{StaticResource TextSecondary}" FontSize="11"
+                                   VerticalAlignment="Center" Margin="0,0,8,4"/>
+                        <Button Style="{StaticResource ButtonGhost}" Padding="8,3" FontSize="11" Margin="0,0,6,4"
+                                Command="{Binding QuickSpokenPromptCommand}"
+                                CommandParameter="Study DSA with high priority by 5 PM"
+                                Content="⚡ Study DSA (High priority, 5 PM)"/>
+                        <Button Style="{StaticResource ButtonGhost}" Padding="8,3" FontSize="11" Margin="0,0,6,4"
+                                Command="{Binding QuickSpokenPromptCommand}"
+                                CommandParameter="Work on project report"
+                                Content="📝 Add task without priority (test AI prompt)"/>
+                        <Button Style="{StaticResource ButtonGhost}" Padding="8,3" FontSize="11" Margin="0,0,6,4"
+                                Command="{Binding QuickSpokenPromptCommand}"
+                                CommandParameter="Update Study DSA to low priority"
+                                Content="🔄 Update DSA to low priority"/>
+                        <Button Style="{StaticResource ButtonGhost}" Padding="8,3" FontSize="11" Margin="0,0,6,4"
+                                Command="{Binding QuickSpokenPromptCommand}"
+                                CommandParameter="Delete task Study DSA"
+                                Content="🗑️ Delete DSA quest"/>
+                    </WrapPanel>
+                </Grid>
+            </Border>
+
+            <!-- ═══════════════════════════════════════════════════════════════════
+                 SECTION 2: QUEST LIST HEADER & FILTER TABS
+                 ═══════════════════════════════════════════════════════════════════ -->
+            <Grid Margin="0,0,0,12">
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="ACTIVE QUESTS" Style="{StaticResource TextSectionTitle}" VerticalAlignment="Center" Margin="0,0,16,0"/>
+
+                    <!-- Filter Chips -->
+                    <Button Content="All Quests" Padding="12,5" FontSize="11" Margin="0,0,6,0"
+                            Command="{Binding SetFilterCommand}" CommandParameter="all">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource ButtonGhost}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsFilterAll}" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource BrushSurfaceMuted}"/>
+                                        <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                                        <Setter Property="Foreground" Value="{StaticResource BrushAccentDark}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <Button Content="Pending" Padding="12,5" FontSize="11" Margin="0,0,6,0"
+                            Command="{Binding SetFilterCommand}" CommandParameter="pending">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource ButtonGhost}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsFilterPending}" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource BrushSurfaceMuted}"/>
+                                        <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                                        <Setter Property="Foreground" Value="{StaticResource BrushAccentDark}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+
+                    <Button Content="Completed" Padding="12,5" FontSize="11"
+                            Command="{Binding SetFilterCommand}" CommandParameter="completed">
+                        <Button.Style>
+                            <Style TargetType="Button" BasedOn="{StaticResource ButtonGhost}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsFilterCompleted}" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource BrushSurfaceMuted}"/>
+                                        <Setter Property="BorderBrush" Value="{StaticResource BrushAccent}"/>
+                                        <Setter Property="Foreground" Value="{StaticResource BrushAccentDark}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </StackPanel>
+
+                <!-- Refresh Button -->
+                <Button Content="⟳ Refresh" HorizontalAlignment="Right" VerticalAlignment="Center"
+                        Style="{StaticResource ButtonGhost}" Padding="10,5" FontSize="11"
+                        Command="{Binding LoadGoalsCommand}"/>
+            </Grid>
+
+            <!-- ═══════════════════════════════════════════════════════════════════
+                 SECTION 3: SKELETON LOADING STATE (Shown when IsLoading is true)
+                 ═══════════════════════════════════════════════════════════════════ -->
+            <StackPanel Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}">
+                <!-- Skeleton Card 1 -->
+                <Border Style="{StaticResource SkeletonCard}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <!-- Skeleton Checkbox -->
+                        <Border Grid.Column="0" Style="{StaticResource SkeletonBlock}" Width="20" Height="20" CornerRadius="4" Margin="0,0,14,0"/>
+                        <!-- Skeleton Content -->
+                        <StackPanel Grid.Column="1">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Style="{StaticResource SkeletonLine}" Width="240" Height="16"/>
+                                <Border Style="{StaticResource SkeletonBadge}" Margin="10,0,0,0"/>
+                            </StackPanel>
+                            <Border Style="{StaticResource SkeletonLine}" Width="140" Height="11"/>
+                        </StackPanel>
+                        <!-- Skeleton Action Buttons -->
+                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                            <Border Style="{StaticResource SkeletonBlock}" Width="70" Height="28" CornerRadius="4" Margin="0,0,6,0"/>
+                            <Border Style="{StaticResource SkeletonBlock}" Width="60" Height="28" CornerRadius="4"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Skeleton Card 2 -->
+                <Border Style="{StaticResource SkeletonCard}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Style="{StaticResource SkeletonBlock}" Width="20" Height="20" CornerRadius="4" Margin="0,0,14,0"/>
+                        <StackPanel Grid.Column="1">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Style="{StaticResource SkeletonLine}" Width="190" Height="16"/>
+                                <Border Style="{StaticResource SkeletonBadge}" Margin="10,0,0,0"/>
+                            </StackPanel>
+                            <Border Style="{StaticResource SkeletonLine}" Width="110" Height="11"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                            <Border Style="{StaticResource SkeletonBlock}" Width="70" Height="28" CornerRadius="4" Margin="0,0,6,0"/>
+                            <Border Style="{StaticResource SkeletonBlock}" Width="60" Height="28" CornerRadius="4"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- Skeleton Card 3 -->
+                <Border Style="{StaticResource SkeletonCard}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Style="{StaticResource SkeletonBlock}" Width="20" Height="20" CornerRadius="4" Margin="0,0,14,0"/>
+                        <StackPanel Grid.Column="1">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border Style="{StaticResource SkeletonLine}" Width="280" Height="16"/>
+                                <Border Style="{StaticResource SkeletonBadge}" Margin="10,0,0,0"/>
+                            </StackPanel>
+                            <Border Style="{StaticResource SkeletonLine}" Width="160" Height="11"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal">
+                            <Border Style="{StaticResource SkeletonBlock}" Width="70" Height="28" CornerRadius="4" Margin="0,0,6,0"/>
+                            <Border Style="{StaticResource SkeletonBlock}" Width="60" Height="28" CornerRadius="4"/>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </StackPanel>
+
+            <!-- ═══════════════════════════════════════════════════════════════════
+                 SECTION 4: REAL QUESTS LIST (Shown when IsLoading is false)
+                 ═══════════════════════════════════════════════════════════════════ -->
+            <StackPanel Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVisibility}}">
+
+                <!-- Empty State -->
+                <Border Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushBorder}"
+                        BorderThickness="1" CornerRadius="{StaticResource RadiusPanel}" Padding="32"
+                        Visibility="{Binding HasGoals, Converter={StaticResource InverseBoolToVisibility}}">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="⚔️" FontSize="36" HorizontalAlignment="Center" Margin="0,0,0,8"/>
+                        <TextBlock Text="No Quests in this view" Style="{StaticResource TextCardTitle}" 
+                                   HorizontalAlignment="Center" Margin="0,0,0,4"/>
+                        <TextBlock Text="Click the mic above or speak your quest naturally to forge your daily objectives!" 
+                                   Style="{StaticResource TextSecondary}" HorizontalAlignment="Center"/>
                     </StackPanel>
                 </Border>
 
-                <!-- Goals List -->
-                <Border Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushBorder}"
-                        BorderThickness="1" CornerRadius="{StaticResource RadiusPanel}" Padding="20">
-                    <StackPanel>
-                        <TextBlock Text="CURRENT OBJECTIVES" Style="{StaticResource TextSectionTitle}" Margin="0,0,0,16"/>
-                        <ItemsControl ItemsSource="{Binding Goals}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border Background="{StaticResource BrushSurfaceMuted}"
-                                            BorderBrush="{StaticResource BrushBorder}" BorderThickness="1"
-                                            CornerRadius="6" Padding="16" Margin="0,0,0,10">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            <StackPanel Grid.Column="0">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="{Binding Title}" Style="{StaticResource TextCardTitle}" FontSize="16" VerticalAlignment="Center"/>
-                                                    <Border Background="{StaticResource BrushAccentSoft}" CornerRadius="4"
-                                                            Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
-                                                        <TextBlock Text="{Binding Priority}" FontFamily="{StaticResource FontMono}"
-                                                                   FontSize="11" Foreground="{StaticResource BrushAccentDark}" FontWeight="SemiBold"/>
-                                                    </Border>
-                                                </StackPanel>
-                                                <TextBlock Text="{Binding Description}" Style="{StaticResource TextSecondary}" Margin="0,4,0,0" TextWrapping="Wrap"/>
-                                                <TextBlock FontFamily="{StaticResource FontMono}" FontSize="12"
-                                                           Foreground="{StaticResource BrushTextSecondary}" Margin="0,8,0,0">
+                <!-- Items List -->
+                <ItemsControl ItemsSource="{Binding FilteredGoals}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Background="{StaticResource BrushSurface}" BorderBrush="{StaticResource BrushBorder}"
+                                    BorderThickness="1" CornerRadius="{StaticResource RadiusPanel}" Padding="16,14" Margin="0,0,0,10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- Status / Checkbox Action -->
+                                    <Button Grid.Column="0" Margin="0,0,14,0" VerticalAlignment="Center"
+                                            Command="{Binding DataContext.CompleteGoalCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            Cursor="Hand" ToolTip="Mark complete">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Width="22" Height="22" CornerRadius="4" BorderThickness="1.5">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}"/>
+                                                            <Setter Property="Background" Value="Transparent"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsCompleted}" Value="True">
+                                                                    <Setter Property="Background" Value="{StaticResource BrushSuccess}"/>
+                                                                    <Setter Property="BorderBrush" Value="{StaticResource BrushSuccess}"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <TextBlock Text="✓" FontSize="13" FontWeight="Bold" Foreground="White" 
+                                                               HorizontalAlignment="Center" VerticalAlignment="Center">
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding IsCompleted}" Value="True">
+                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+
+                                    <!-- Quest Title + Priority + Duration/Deadline -->
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                            <!-- Title with completion styling -->
+                                            <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="{StaticResource BrushTextPrimary}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsCompleted}" Value="True">
+                                                                <Setter Property="Foreground" Value="{StaticResource BrushTextSecondary}"/>
+                                                                <Setter Property="TextDecorations" Value="Strikethrough"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+
+                                            <!-- Priority Badge -->
+                                            <Border CornerRadius="4" Padding="6,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="Background" Value="{StaticResource BrushAccentSoft}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding Priority}" Value="critical">
+                                                                <Setter Property="Background" Value="#FADBD8"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Priority}" Value="high">
+                                                                <Setter Property="Background" Value="{StaticResource BrushAccentSoft}"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Priority}" Value="medium">
+                                                                <Setter Property="Background" Value="#FCF3CF"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding Priority}" Value="low">
+                                                                <Setter Property="Background" Value="#D4EFDF"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <TextBlock Text="{Binding Priority}" FontFamily="{StaticResource FontMono}"
+                                                           FontSize="11" FontWeight="Bold">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
-                                                            <Setter Property="Text" Value="{Binding EstimatedMinutes, StringFormat='{}{0} minutes estimated'}"/>
+                                                            <Setter Property="Foreground" Value="{StaticResource BrushAccentDark}"/>
                                                             <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding EstimatedMinutes}" Value="{x:Null}">
-                                                                    <Setter Property="Text" Value="Flexible duration"/>
+                                                                <DataTrigger Binding="{Binding Priority}" Value="critical">
+                                                                    <Setter Property="Foreground" Value="{StaticResource BrushDanger}"/>
                                                                 </DataTrigger>
-                                                                <DataTrigger Binding="{Binding EstimatedMinutes}" Value="0">
-                                                                    <Setter Property="Text" Value="Flexible duration"/>
+                                                                <DataTrigger Binding="{Binding Priority}" Value="high">
+                                                                    <Setter Property="Foreground" Value="{StaticResource BrushAccentDark}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Priority}" Value="medium">
+                                                                    <Setter Property="Foreground" Value="{StaticResource BrushWarning}"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding Priority}" Value="low">
+                                                                    <Setter Property="Foreground" Value="{StaticResource BrushSuccess}"/>
                                                                 </DataTrigger>
                                                             </Style.Triggers>
                                                         </Style>
                                                     </TextBlock.Style>
                                                 </TextBlock>
-                                            </StackPanel>
-                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                                                <Button Content="Complete" Style="{StaticResource ButtonPrimary}" Padding="12,6" Margin="0,0,8,0"
-                                                        Command="{Binding DataContext.CompleteGoalCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                        CommandParameter="{Binding}"/>
-                                                <Button Content="Abandon" Style="{StaticResource ButtonGhost}" Padding="10,6"
-                                                        Command="{Binding DataContext.DeleteGoalCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                        CommandParameter="{Binding}"/>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </StackPanel>
-                </Border>
+                                            </Border>
+                                        </StackPanel>
+
+                                        <!-- Time / Deadline info -->
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="⏱ " FontSize="11" Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center"/>
+                                            <TextBlock FontFamily="{StaticResource FontMono}" FontSize="12" 
+                                                       Foreground="{StaticResource BrushTextSecondary}" VerticalAlignment="Center">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Text" Value="{Binding EstimatedMinutes, StringFormat='{}{0} min duration'}"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding EstimatedMinutes}" Value="{x:Null}">
+                                                                <Setter Property="Text" Value="Flexible timeline"/>
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding EstimatedMinutes}" Value="0">
+                                                                <Setter Property="Text" Value="Flexible timeline"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <!-- Delete / Action Button -->
+                                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Button Content="🗑 Remove" Style="{StaticResource ButtonGhost}" Padding="8,4" FontSize="11"
+                                                Command="{Binding DataContext.DeleteGoalCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
 
             </StackPanel>
-        </ScrollViewer>
 
-        <!-- ══ VOICE ASSISTANT OVERLAY (Google Assistant style) ══ -->
-        <Grid x:Name="VoiceOverlay"
-              Visibility="{Binding IsVoicePanelOpen, Converter={StaticResource BoolToVisibility}}">
-
-            <!-- Dark backdrop -->
-            <Border Background="#CC050510"/>
-
-            <!-- Centered floating card -->
-            <Border HorizontalAlignment="Center" VerticalAlignment="Center"
-                    Width="460" CornerRadius="24" Padding="0,0,0,28">
-                <Border.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="#FF13131F" Offset="0"/>
-                        <GradientStop Color="#FF1A1A2E" Offset="1"/>
-                    </LinearGradientBrush>
-                </Border.Background>
-                <Border.Effect>
-                    <DropShadowEffect Color="#AA000000" BlurRadius="60" ShadowDepth="0"/>
-                </Border.Effect>
-
-                <StackPanel>
-
-                    <!-- Top bar: close -->
-                    <Grid Margin="20,16,20,0">
-                        <TextBlock Text="AI Voice Planner" Foreground="#AAFFFFFF"
-                                   FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                        <Button HorizontalAlignment="Right"
-                                Command="{Binding ToggleVoicePanelCommand}"
-                                Background="Transparent" BorderThickness="0"
-                                Foreground="#88FFFFFF" FontSize="16" Cursor="Hand"
-                                Content="&#x2715;" Padding="8" Width="34" Height="34"/>
-                    </Grid>
-
-                    <!-- Orb + glow -->
-                    <Grid Width="160" Height="160" HorizontalAlignment="Center" Margin="0,16,0,20">
-
-                        <!-- Animated glow ring -->
-                        <Ellipse x:Name="OrbGlow" Width="160" Height="160"
-                                 Opacity="0.45" RenderTransformOrigin="0.5,0.5">
-                            <Ellipse.RenderTransform>
-                                <ScaleTransform ScaleX="1" ScaleY="1"/>
-                            </Ellipse.RenderTransform>
-                            <Ellipse.Fill>
-                                <RadialGradientBrush>
-                                    <GradientStop Color="#70E8612A" Offset="0"/>
-                                    <GradientStop Color="#00000000" Offset="1"/>
-                                </RadialGradientBrush>
-                            </Ellipse.Fill>
-                        </Ellipse>
-
-                        <!-- Mic button -->
-                        <Button x:Name="MicButton" Width="96" Height="96"
-                                HorizontalAlignment="Center" VerticalAlignment="Center"
-                                Command="{Binding ToggleVoiceListeningCommand}"
-                                Cursor="Hand" ToolTip="Click to start/stop listening"
-                                BorderThickness="0" Background="Transparent">
-                            <Button.Template>
-                                <ControlTemplate TargetType="Button">
-                                    <Grid>
-                                        <Ellipse Width="96" Height="96">
-                                            <Ellipse.Fill>
-                                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                    <GradientStop Color="#FFE8612A" Offset="0"/>
-                                                    <GradientStop Color="#FFFF9500" Offset="1"/>
-                                                </LinearGradientBrush>
-                                            </Ellipse.Fill>
-                                            <Ellipse.Effect>
-                                                <DropShadowEffect Color="#FFE8612A" BlurRadius="22" ShadowDepth="0" Opacity="0.65"/>
-                                            </Ellipse.Effect>
-                                        </Ellipse>
-                                        <TextBlock Text="&#x1F399;" FontSize="34"
-                                                   HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                   Margin="0,2,0,0"/>
-                                    </Grid>
-                                </ControlTemplate>
-                            </Button.Template>
-                        </Button>
-                    </Grid>
-
-                    <!-- Status text -->
-                    <TextBlock Text="{Binding VoiceStatusText}"
-                               FontSize="15" FontWeight="SemiBold" Foreground="White"
-                               HorizontalAlignment="Center" TextWrapping="Wrap"
-                               TextAlignment="Center" Margin="32,0,32,16"/>
-
-                    <!-- Waveform bars (only when listening) -->
-                    <StackPanel x:Name="WaveformPanel" Orientation="Horizontal"
-                                HorizontalAlignment="Center" Height="64" Margin="0,0,0,16"
-                                Visibility="{Binding IsVoiceListening, Converter={StaticResource BoolToVisibility}}">
-                        <Rectangle x:Name="Bar1" Width="5" Height="6" RadiusX="3" RadiusY="3"
-                                   VerticalAlignment="Center" Margin="4,0">
-                            <Rectangle.Fill>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#FFFF9500" Offset="0"/>
-                                    <GradientStop Color="#FFE8612A" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Rectangle.Fill>
-                        </Rectangle>
-                        <Rectangle x:Name="Bar2" Width="5" Height="10" RadiusX="3" RadiusY="3"
-                                   VerticalAlignment="Center" Margin="4,0">
-                            <Rectangle.Fill>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#FFFF9500" Offset="0"/>
-                                    <GradientStop Color="#FFE8612A" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Rectangle.Fill>
-                        </Rectangle>
-                        <Rectangle x:Name="Bar3" Width="5" Height="4" RadiusX="3" RadiusY="3"
-                                   VerticalAlignment="Center" Margin="4,0">
-                            <Rectangle.Fill>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#FFFF9500" Offset="0"/>
-                                    <GradientStop Color="#FFE8612A" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Rectangle.Fill>
-                        </Rectangle>
-                        <Rectangle x:Name="Bar4" Width="5" Height="8" RadiusX="3" RadiusY="3"
-                                   VerticalAlignment="Center" Margin="4,0">
-                            <Rectangle.Fill>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#FFFF9500" Offset="0"/>
-                                    <GradientStop Color="#FFE8612A" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Rectangle.Fill>
-                        </Rectangle>
-                        <Rectangle x:Name="Bar5" Width="5" Height="6" RadiusX="3" RadiusY="3"
-                                   VerticalAlignment="Center" Margin="4,0">
-                            <Rectangle.Fill>
-                                <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                    <GradientStop Color="#FFFF9500" Offset="0"/>
-                                    <GradientStop Color="#FFE8612A" Offset="1"/>
-                                </LinearGradientBrush>
-                            </Rectangle.Fill>
-                        </Rectangle>
-                    </StackPanel>
-
-                    <!-- Live transcript bubble (partial speech) -->
-                    <Border Background="#18FFFFFF" CornerRadius="12" Padding="12,8"
-                            Margin="32,0,32,8"
-                            Visibility="{Binding IsVoiceListening, Converter={StaticResource BoolToVisibility}}">
-                        <TextBlock Text="{Binding SpokenTranscript}"
-                                   Foreground="#AAFFFFFF" FontSize="12"
-                                   TextWrapping="Wrap" TextAlignment="Center" FontStyle="Italic"/>
-                    </Border>
-
-                    <!-- Chat history list -->
-                    <ScrollViewer MaxHeight="200" VerticalScrollBarVisibility="Auto"
-                                  Margin="32,0,32,10"
-                                  x:Name="ChatScroll">
-                        <ItemsControl ItemsSource="{Binding ChatHistory}">
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Grid Margin="0,4,0,4">
-                                        <!-- USER bubble: right-aligned -->
-                                        <Border HorizontalAlignment="Right" MaxWidth="280"
-                                                CornerRadius="14,14,4,14" Padding="12,8"
-                                                Visibility="{Binding IsUser, Converter={StaticResource BoolToVisibility}}">
-                                            <Border.Background>
-                                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                                    <GradientStop Color="#FFE8612A" Offset="0"/>
-                                                    <GradientStop Color="#FFFF9500" Offset="1"/>
-                                                </LinearGradientBrush>
-                                            </Border.Background>
-                                            <TextBlock Text="{Binding Text}" Foreground="White"
-                                                       FontSize="13" TextWrapping="Wrap"/>
-                                        </Border>
-                                        <!-- ASSISTANT bubble: left-aligned -->
-                                        <Border HorizontalAlignment="Left" MaxWidth="300"
-                                                Background="#22FFFFFF"
-                                                CornerRadius="14,14,14,4" Padding="12,8"
-                                                Visibility="{Binding IsAssistant, Converter={StaticResource BoolToVisibility}}">
-                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Top">
-                                                <TextBlock Text="&#x2694;" FontSize="14" VerticalAlignment="Top" Margin="0,0,7,0" Foreground="#FFE8612A"/>
-                                                <TextBlock Text="{Binding Text}" Foreground="#EEFFFFFF"
-                                                           FontSize="13" TextWrapping="Wrap"/>
-                                            </StackPanel>
-                                        </Border>
-                                    </Grid>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-
-                    <!-- Type input bar -->
-                    <Border Margin="32,0" Background="#12FFFFFF" CornerRadius="12" Padding="4">
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0"
-                                     Text="{Binding VoiceInputText, UpdateSourceTrigger=PropertyChanged}"
-                                     Background="Transparent" BorderThickness="0"
-                                     Foreground="White" CaretBrush="White"
-                                     FontSize="13" Padding="10,8"
-                                     VerticalContentAlignment="Center">
-                                <TextBox.Resources>
-                                    <Style TargetType="Border">
-                                        <Setter Property="CornerRadius" Value="10"/>
-                                    </Style>
-                                </TextBox.Resources>
-                            </TextBox>
-                            <Button Grid.Column="1" Command="{Binding SubmitVoicePlanCommand}"
-                                    Margin="4" Padding="14,8"
-                                    Cursor="Hand">
-                                <Button.Template>
-                                    <ControlTemplate TargetType="Button">
-                                        <Border Background="#FFE8612A" CornerRadius="10"
-                                                Padding="{TemplateBinding Padding}">
-                                            <TextBlock Text="Add to List &#x2192;" Foreground="White"
-                                                       FontWeight="SemiBold" FontSize="12"/>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Button.Template>
-                            </Button>
-                        </Grid>
-                    </Border>
-
-                    <!-- Quick prompt chips -->
-                    <WrapPanel HorizontalAlignment="Center" Margin="20,12,20,0">
-                        <TextBlock Text="Try:" Foreground="#70FFFFFF" FontSize="11"
-                                   VerticalAlignment="Center" Margin="0,0,8,4"/>
-                        <Button Style="{StaticResource ButtonGhost}" Padding="8,3" FontSize="11" Margin="0,0,6,4"
-                                Command="{Binding QuickSpokenPromptCommand}"
-                                CommandParameter="2 hours of DSA and 1 hour of project work">
-                            <TextBlock Text="&#x26A1; 2h DSA + 1h Project" Foreground="#BBFFFFFF"/>
-                        </Button>
-                        <Button Style="{StaticResource ButtonGhost}" Padding="8,3" FontSize="11" Margin="0,0,6,4"
-                                Command="{Binding QuickSpokenPromptCommand}"
-                                CommandParameter="90 minutes of frontend development and 30 minutes of emails">
-                            <TextBlock Text="&#x1F3AF; 90m Frontend" Foreground="#BBFFFFFF"/>
-                        </Button>
-                        <Button Style="{StaticResource ButtonGhost}" Padding="8,3" FontSize="11" Margin="0,0,6,4"
-                                Command="{Binding QuickSpokenPromptCommand}"
-                                CommandParameter="1 hour of system design study">
-                            <TextBlock Text="&#x1F4DA; 1h System Design" Foreground="#BBFFFFFF"/>
-                        </Button>
-                    </WrapPanel>
-
-                </StackPanel>
-            </Border>
-        </Grid>
-
-    </Grid>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>
-

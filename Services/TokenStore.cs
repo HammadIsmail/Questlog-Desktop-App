@@ -107,8 +107,15 @@ public static class TokenStore
                 var stored = JsonSerializer.Deserialize<StoredAuth>(json);
                 if (stored == null) return null;
 
-                // Treat tokens older than 23 hours as stale (backend JWT is 24h)
-                if (DateTimeOffset.UtcNow - stored.SavedAt > TimeSpan.FromHours(23))
+                // 1. Validate JWT exp claim directly from the token payload
+                if (IsJwtExpired(stored.Token))
+                {
+                    Clear();
+                    return null;
+                }
+
+                // 2. Fallback check: treat tokens older than 7 days as stale
+                if (DateTimeOffset.UtcNow - stored.SavedAt > TimeSpan.FromDays(7))
                 {
                     Clear();
                     return null;
@@ -125,6 +132,43 @@ public static class TokenStore
         {
             return null;
         }
+    }
+
+    /// <summary>
+    /// Decodes the JWT payload to inspect the 'exp' claim.
+    /// Returns true if expired or within 30 seconds of expiring.
+    /// </summary>
+    public static bool IsJwtExpired(string token)
+    {
+        if (string.IsNullOrWhiteSpace(token)) return true;
+        try
+        {
+            var parts = token.Split('.');
+            if (parts.Length < 2) return true;
+
+            var payload = parts[1];
+            payload = payload.Replace('-', '+').Replace('_', '/');
+            switch (payload.Length % 4)
+            {
+                case 2: payload += "=="; break;
+                case 3: payload += "="; break;
+            }
+
+            var bytes = Convert.FromBase64String(payload);
+            using var doc = JsonDocument.Parse(bytes);
+            if (doc.RootElement.TryGetProperty("exp", out var expElement))
+            {
+                var expSeconds = expElement.GetInt64();
+                var expDate = DateTimeOffset.FromUnixTimeSeconds(expSeconds);
+                return expDate <= DateTimeOffset.UtcNow.AddSeconds(30);
+            }
+        }
+        catch
+        {
+            return true;
+        }
+
+        return false;
     }
 
     /// <summary>Delete the saved credential (called on explicit logout).</summary>

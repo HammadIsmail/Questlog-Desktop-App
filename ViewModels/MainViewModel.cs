@@ -76,7 +76,7 @@ public class MainViewModel : ViewModelBase
         _coachVm = coachVm;
         _settingsVm = settingsVm;
 
-        NavigateToCommand = new AsyncRelayCommand(param => NavigateToAsync(param?.ToString() ?? "Dashboard"));
+        NavigateToCommand = new AsyncRelayCommand(param => NavigateToAsync(param?.ToString() ?? "Goals"));
         LogoutCommand = new RelayCommand(Logout);
 
         _apiClient.AuthStateChanged += OnAuthStateChanged;
@@ -84,9 +84,9 @@ public class MainViewModel : ViewModelBase
 
         if (_apiClient.IsAuthenticated)
         {
-            _currentView = _dashboardVm;
-            _currentViewTitle = "Campaign Overview";
-            _ = _dashboardVm.InitializeAsync();
+            _currentView = _goalsVm;
+            _currentViewTitle = "Quests & AI Voice";
+            _ = InitializeAuthenticatedSessionAsync();
         }
         else
         {
@@ -98,6 +98,18 @@ public class MainViewModel : ViewModelBase
         {
             _currentView.PropertyChanged += OnChildViewPropertyChanged;
         }
+    }
+
+    private async Task InitializeAuthenticatedSessionAsync()
+    {
+        var isValid = await _apiClient.ValidateSessionAsync();
+        if (!isValid)
+        {
+            // Token is invalid/expired — ValidateSessionAsync() triggered Logout()
+            return;
+        }
+
+        await _goalsVm.InitializeAsync();
     }
 
     private void OnChildViewPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -123,9 +135,9 @@ public class MainViewModel : ViewModelBase
     {
         OnPropertyChanged(nameof(IsAuthenticated));
         OnPropertyChanged(nameof(UserDisplay));
-        CurrentView = _dashboardVm;
-        CurrentViewTitle = "Campaign Overview";
-        _ = _dashboardVm.InitializeAsync();
+        CurrentView = _goalsVm;
+        CurrentViewTitle = "Quests & AI Voice";
+        _ = _goalsVm.InitializeAsync();
     }
 
     public void Logout()
@@ -156,7 +168,7 @@ public class MainViewModel : ViewModelBase
                 break;
             case "Goals":
                 CurrentView = _goalsVm;
-                CurrentViewTitle = "Active Quests";
+                CurrentViewTitle = "Quests & AI Voice";
                 await _goalsVm.InitializeAsync();
                 break;
             case "Analytics":

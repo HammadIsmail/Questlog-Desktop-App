@@ -273,4 +273,52 @@
         <Setter Property="FontSize" Value="14" />
     </Style>
 
+    <!-- =====================================================
+         SKELETON LOADING STYLES
+         Subtle opacity breathing animation on warm-neutral surfaces
+         ===================================================== -->
+
+    <Storyboard x:Key="SkeletonPulseAnimation" RepeatBehavior="Forever">
+        <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                         From="0.38" To="0.82" Duration="0:0:0.85" AutoReverse="True">
+            <DoubleAnimation.EasingFunction>
+                <SineEase EasingMode="EaseInOut"/>
+            </DoubleAnimation.EasingFunction>
+        </DoubleAnimation>
+    </Storyboard>
+
+    <!-- Base Skeleton Block -->
+    <Style x:Key="SkeletonBlock" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource BrushSurfaceMuted}" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Style.Triggers>
+            <EventTrigger RoutedEvent="Loaded">
+                <BeginStoryboard Storyboard="{StaticResource SkeletonPulseAnimation}" />
+            </EventTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- Skeleton Card Container -->
+    <Style x:Key="SkeletonCard" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource BrushSurface}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BrushBorder}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusPanel}" />
+        <Setter Property="Padding" Value="16" />
+        <Setter Property="Margin" Value="0,0,0,10" />
+    </Style>
+
+    <!-- Skeleton Text Line -->
+    <Style x:Key="SkeletonLine" TargetType="Border" BasedOn="{StaticResource SkeletonBlock}">
+        <Setter Property="Height" Value="14" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+
+    <!-- Skeleton Badge -->
+    <Style x:Key="SkeletonBadge" TargetType="Border" BasedOn="{StaticResource SkeletonBlock}">
+        <Setter Property="Height" Value="20" />
+        <Setter Property="Width" Value="55" />
+        <Setter Property="CornerRadius" Value="10" />
+    </Style>
+
 </ResourceDictionary>

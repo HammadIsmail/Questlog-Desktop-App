@@ -78,25 +78,13 @@
 
                 <!-- Navigation List -->
                 <StackPanel Grid.Row="2">
-                    <TextBlock Text="CAMPAIGN" Style="{StaticResource TextSectionTitle}" Margin="6,0,0,4"/>
-                    <Button Content="📊  Overview" Style="{StaticResource NavButton}" 
-                            Command="{Binding NavigateToCommand}" CommandParameter="Dashboard"/>
-                    <Button Content="📅  Daily Schedule" Style="{StaticResource NavButton}" 
-                            Command="{Binding NavigateToCommand}" CommandParameter="Schedule"/>
-                    <Button Content="🎯  Active Quests" Style="{StaticResource NavButton}" 
+                    <TextBlock Text="MENU" Style="{StaticResource TextSectionTitle}" Margin="6,0,0,8"/>
+                    <Button Content="🎯  Quests &amp; AI Voice" Style="{StaticResource NavButton}" 
                             Command="{Binding NavigateToCommand}" CommandParameter="Goals"/>
-
-                    <TextBlock Text="INTELLIGENCE" Style="{StaticResource TextSectionTitle}" Margin="6,12,0,4"/>
-                    <Button Content="📈  Analytics" Style="{StaticResource NavButton}" 
-                            Command="{Binding NavigateToCommand}" CommandParameter="Analytics"/>
                     <Button Content="⏱  Window Tracker" Style="{StaticResource NavButton}" 
                             Command="{Binding NavigateToCommand}" CommandParameter="Activity"/>
-                    <Button Content="🧙  Dungeon Master AI" Style="{StaticResource NavButton}" 
-                            Command="{Binding NavigateToCommand}" CommandParameter="Coach"/>
-
-                    <TextBlock Text="SYSTEM" Style="{StaticResource TextSectionTitle}" Margin="6,12,0,4"/>
-                    <Button Content="⚙  Settings" Style="{StaticResource NavButton}" 
-                            Command="{Binding NavigateToCommand}" CommandParameter="Settings"/>
+                    <Button Content="📈  Analytics" Style="{StaticResource NavButton}" 
+                            Command="{Binding NavigateToCommand}" CommandParameter="Analytics"/>
                 </StackPanel>
 
                 <!-- Bottom Telemetry Status & User Profile -->

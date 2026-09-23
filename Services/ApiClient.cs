@@ -109,6 +109,29 @@ public class ApiClient
     }
 
     /// <summary>
+    /// Validates the current session against /api/v1/auth/me.
+    /// If invalid or expired (401), automatically clears tokens and logs out.
+    /// </summary>
+    public async Task<bool> ValidateSessionAsync()
+    {
+        if (!IsAuthenticated) return false;
+        try
+        {
+            var resp = await _http.GetAsync("/api/v1/auth/me");
+            if (resp.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                Logout();
+                return false;
+            }
+            return resp.IsSuccessStatusCode;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Quick guest login for one-click testing or default adventurers.
     /// </summary>
     public async Task<bool> QuickLoginGuestAsync()
@@ -125,55 +148,74 @@ public class ApiClient
     }
 
     /// <summary>
-    /// Ensures client has token, attempting guest login if unauthenticated.
+    /// Ensures client has token.
     /// </summary>
-    public async Task<bool> EnsureAuthenticatedAsync()
+    public Task<bool> EnsureAuthenticatedAsync()
     {
-        if (IsAuthenticated) return true;
-        return await QuickLoginGuestAsync();
+        return Task.FromResult(IsAuthenticated);
+    }
+
+    private async Task<HttpResponseMessage?> SendWithAuthCheckAsync(Func<Task<HttpResponseMessage>> sendFunc)
+    {
+        try
+        {
+            var resp = await sendFunc();
+            if (resp.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                Logout();
+                return null;
+            }
+            return resp;
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        {
+            Logout();
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     // ──────── Activities ────────
     public async Task<List<ActivityRecord>> GetTodayActivitiesAsync()
     {
+        var resp = await SendWithAuthCheckAsync(() => _http.GetAsync("/api/v1/activities/today"));
+        if (resp == null || !resp.IsSuccessStatusCode) return [];
         try
         {
-            var result = await _http.GetFromJsonAsync<List<ActivityRecord>>("/api/v1/activities/today", JsonOpts);
-            return result ?? [];
+            return await resp.Content.ReadFromJsonAsync<List<ActivityRecord>>(JsonOpts) ?? [];
         }
         catch { return []; }
     }
 
     public async Task<bool> BatchIngestActivitiesAsync(List<ActivityCreate> activities)
     {
-        try
-        {
-            var resp = await _http.PostAsJsonAsync("/api/v1/activities/batch",
-                new { activities }, JsonOpts);
-            return resp.IsSuccessStatusCode;
-        }
-        catch { return false; }
+        var resp = await SendWithAuthCheckAsync(() => _http.PostAsJsonAsync("/api/v1/activities/batch",
+            new { activities }, JsonOpts));
+        return resp?.IsSuccessStatusCode ?? false;
     }
 
     // ──────── Goals ────────
     public async Task<List<GoalRecord>> GetTodayGoalsAsync()
     {
+        var resp = await SendWithAuthCheckAsync(() => _http.GetAsync("/api/v1/goals/today"));
+        if (resp == null || !resp.IsSuccessStatusCode) return [];
         try
         {
-            await EnsureAuthenticatedAsync();
-            var result = await _http.GetFromJsonAsync<List<GoalRecord>>("/api/v1/goals/today", JsonOpts);
-            return result ?? [];
+            return await resp.Content.ReadFromJsonAsync<List<GoalRecord>>(JsonOpts) ?? [];
         }
         catch { return []; }
     }
 
     public async Task<List<GoalRecord>> GetAllGoalsAsync()
     {
+        var resp = await SendWithAuthCheckAsync(() => _http.GetAsync("/api/v1/goals"));
+        if (resp == null || !resp.IsSuccessStatusCode) return [];
         try
         {
-            await EnsureAuthenticatedAsync();
-            var result = await _http.GetFromJsonAsync<List<GoalRecord>>("/api/v1/goals", JsonOpts);
-            return result ?? [];
+            return await resp.Content.ReadFromJsonAsync<List<GoalRecord>>(JsonOpts) ?? [];
         }
         catch { return []; }
     }
@@ -181,12 +223,11 @@ public class ApiClient
     public async Task<ConversationGoalResponse?> CreateGoalsFromConversationAsync(
         string text, IEnumerable<ConversationTurn>? history = null)
     {
+        var resp = await SendWithAuthCheckAsync(() => _http.PostAsJsonAsync("/api/v1/goals/from-conversation",
+            new { text, conversation_history = history ?? [] }, JsonOpts));
+        if (resp == null || !resp.IsSuccessStatusCode) return null;
         try
         {
-            await EnsureAuthenticatedAsync();
-            var resp = await _http.PostAsJsonAsync("/api/v1/goals/from-conversation",
-                new { text, conversation_history = history ?? [] }, JsonOpts);
-            if (!resp.IsSuccessStatusCode) return null;
             return await resp.Content.ReadFromJsonAsync<ConversationGoalResponse>(JsonOpts);
         }
         catch { return null; }
@@ -194,11 +235,10 @@ public class ApiClient
 
     public async Task<GoalRecord?> CreateGoalAsync(GoalCreate goal)
     {
+        var resp = await SendWithAuthCheckAsync(() => _http.PostAsJsonAsync("/api/v1/goals", goal, JsonOpts));
+        if (resp == null || !resp.IsSuccessStatusCode) return null;
         try
         {
-            await EnsureAuthenticatedAsync();
-            var resp = await _http.PostAsJsonAsync("/api/v1/goals", goal, JsonOpts);
-            if (!resp.IsSuccessStatusCode) return null;
             return await resp.Content.ReadFromJsonAsync<GoalRecord>(JsonOpts);
         }
         catch { return null; }
@@ -206,43 +246,34 @@ public class ApiClient
 
     public async Task<bool> CompleteGoalAsync(Guid goalId)
     {
-        try
-        {
-            var resp = await _http.PostAsync($"/api/v1/goals/{goalId}/complete", null);
-            return resp.IsSuccessStatusCode;
-        }
-        catch { return false; }
+        var resp = await SendWithAuthCheckAsync(() => _http.PostAsync($"/api/v1/goals/{goalId}/complete", null));
+        return resp?.IsSuccessStatusCode ?? false;
     }
 
     public async Task<bool> DeleteGoalAsync(Guid goalId)
     {
-        try
-        {
-            var resp = await _http.DeleteAsync($"/api/v1/goals/{goalId}");
-            return resp.IsSuccessStatusCode;
-        }
-        catch { return false; }
+        var resp = await SendWithAuthCheckAsync(() => _http.DeleteAsync($"/api/v1/goals/{goalId}"));
+        return resp?.IsSuccessStatusCode ?? false;
     }
 
     // ──────── Schedule ────────
     public async Task<List<ScheduleItemRecord>> GetTodayScheduleAsync()
     {
+        var resp = await SendWithAuthCheckAsync(() => _http.GetAsync("/api/v1/schedule/today"));
+        if (resp == null || !resp.IsSuccessStatusCode) return [];
         try
         {
-            await EnsureAuthenticatedAsync();
-            var result = await _http.GetFromJsonAsync<List<ScheduleItemRecord>>("/api/v1/schedule/today", JsonOpts);
-            return result ?? [];
+            return await resp.Content.ReadFromJsonAsync<List<ScheduleItemRecord>>(JsonOpts) ?? [];
         }
         catch { return []; }
     }
 
     public async Task<List<ScheduleItemRecord>> GenerateScheduleAsync()
     {
+        var resp = await SendWithAuthCheckAsync(() => _http.PostAsJsonAsync("/api/v1/schedule/generate", new { }));
+        if (resp == null || !resp.IsSuccessStatusCode) return [];
         try
         {
-            await EnsureAuthenticatedAsync();
-            var resp = await _http.PostAsJsonAsync("/api/v1/schedule/generate", new { });
-            if (!resp.IsSuccessStatusCode) return [];
             return await resp.Content.ReadFromJsonAsync<List<ScheduleItemRecord>>(JsonOpts) ?? [];
         }
         catch { return []; }
@@ -251,29 +282,33 @@ public class ApiClient
     // ──────── Score ────────
     public async Task<DailyScoreRecord?> GetTodayScoreAsync()
     {
+        var resp = await SendWithAuthCheckAsync(() => _http.GetAsync("/api/v1/score/today"));
+        if (resp == null || !resp.IsSuccessStatusCode) return null;
         try
         {
-            return await _http.GetFromJsonAsync<DailyScoreRecord>("/api/v1/score/today", JsonOpts);
+            return await resp.Content.ReadFromJsonAsync<DailyScoreRecord>(JsonOpts);
         }
         catch { return null; }
     }
 
     public async Task<List<ScoreEventRecord>> GetScoreEventsAsync()
     {
+        var resp = await SendWithAuthCheckAsync(() => _http.GetAsync("/api/v1/score/events"));
+        if (resp == null || !resp.IsSuccessStatusCode) return [];
         try
         {
-            var result = await _http.GetFromJsonAsync<List<ScoreEventRecord>>("/api/v1/score/events", JsonOpts);
-            return result ?? [];
+            return await resp.Content.ReadFromJsonAsync<List<ScoreEventRecord>>(JsonOpts) ?? [];
         }
         catch { return []; }
     }
 
     public async Task<List<DailyScoreRecord>> GetScoreHistoryAsync(int days = 7)
     {
+        var resp = await SendWithAuthCheckAsync(() => _http.GetAsync($"/api/v1/score/history?days={days}"));
+        if (resp == null || !resp.IsSuccessStatusCode) return [];
         try
         {
-            var result = await _http.GetFromJsonAsync<List<DailyScoreRecord>>($"/api/v1/score/history?days={days}", JsonOpts);
-            return result ?? [];
+            return await resp.Content.ReadFromJsonAsync<List<DailyScoreRecord>>(JsonOpts) ?? [];
         }
         catch { return []; }
     }
@@ -281,18 +316,22 @@ public class ApiClient
     // ──────── Analytics ────────
     public async Task<DailyAnalyticsRecord?> GetTodayAnalyticsAsync()
     {
+        var resp = await SendWithAuthCheckAsync(() => _http.GetAsync("/api/v1/analytics/today"));
+        if (resp == null || !resp.IsSuccessStatusCode) return null;
         try
         {
-            return await _http.GetFromJsonAsync<DailyAnalyticsRecord>("/api/v1/analytics/today", JsonOpts);
+            return await resp.Content.ReadFromJsonAsync<DailyAnalyticsRecord>(JsonOpts);
         }
         catch { return null; }
     }
 
     public async Task<WeeklyAnalyticsRecord?> GetWeeklyAnalyticsAsync()
     {
+        var resp = await SendWithAuthCheckAsync(() => _http.GetAsync("/api/v1/analytics/week"));
+        if (resp == null || !resp.IsSuccessStatusCode) return null;
         try
         {
-            return await _http.GetFromJsonAsync<WeeklyAnalyticsRecord>("/api/v1/analytics/week", JsonOpts);
+            return await resp.Content.ReadFromJsonAsync<WeeklyAnalyticsRecord>(JsonOpts);
         }
         catch { return null; }
     }
@@ -300,11 +339,11 @@ public class ApiClient
     // ──────── AI Coach ────────
     public async Task<string?> ChatWithCoachAsync(string message)
     {
+        var resp = await SendWithAuthCheckAsync(() => _http.PostAsJsonAsync("/api/v1/ai/chat",
+            new { message }, JsonOpts));
+        if (resp == null || !resp.IsSuccessStatusCode) return null;
         try
         {
-            var resp = await _http.PostAsJsonAsync("/api/v1/ai/chat",
-                new { message }, JsonOpts);
-            if (!resp.IsSuccessStatusCode) return null;
             var result = await resp.Content.ReadFromJsonAsync<ChatResponse>(JsonOpts);
             return result?.Reply;
         }
@@ -313,9 +352,11 @@ public class ApiClient
 
     public async Task<List<InsightRecord>> GetInsightsAsync()
     {
+        var resp = await SendWithAuthCheckAsync(() => _http.GetAsync("/api/v1/ai/insights"));
+        if (resp == null || !resp.IsSuccessStatusCode) return [];
         try
         {
-            var result = await _http.GetFromJsonAsync<InsightsResponse>("/api/v1/ai/insights", JsonOpts);
+            var result = await resp.Content.ReadFromJsonAsync<InsightsResponse>(JsonOpts);
             return result?.Insights ?? [];
         }
         catch { return []; }
@@ -324,9 +365,11 @@ public class ApiClient
     // ──────── Voice ────────
     public async Task<string?> GetVoiceTokenAsync()
     {
+        var resp = await SendWithAuthCheckAsync(() => _http.GetAsync("/api/v1/voice/token"));
+        if (resp == null || !resp.IsSuccessStatusCode) return null;
         try
         {
-            var result = await _http.GetFromJsonAsync<VoiceTokenResponse>("/api/v1/voice/token", JsonOpts);
+            var result = await resp.Content.ReadFromJsonAsync<VoiceTokenResponse>(JsonOpts);
             return result?.Token;
         }
         catch { return null; }
@@ -334,11 +377,11 @@ public class ApiClient
 
     public async Task<List<ScheduleItemRecord>> ShiftScheduleAsync(Guid itemId, int overrunMinutes)
     {
+        var resp = await SendWithAuthCheckAsync(() => _http.PostAsJsonAsync("/api/v1/schedule/shift",
+            new { item_id = itemId, overrun_minutes = overrunMinutes }, JsonOpts));
+        if (resp == null || !resp.IsSuccessStatusCode) return [];
         try
         {
-            var resp = await _http.PostAsJsonAsync("/api/v1/schedule/shift",
-                new { item_id = itemId, overrun_minutes = overrunMinutes }, JsonOpts);
-            if (!resp.IsSuccessStatusCode) return [];
             return await resp.Content.ReadFromJsonAsync<List<ScheduleItemRecord>>(JsonOpts) ?? [];
         }
         catch { return []; }

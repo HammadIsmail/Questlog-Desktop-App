@@ -27,21 +27,13 @@ public partial class GoalsView : UserControl
 
     private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName is not (nameof(GoalsViewModel.IsVoiceListening) or nameof(GoalsViewModel.IsVoicePanelOpen)))
+        if (e.PropertyName != nameof(GoalsViewModel.IsVoiceListening))
             return;
 
         if (sender is not GoalsViewModel vm) return;
 
         Dispatcher.Invoke(() =>
         {
-            // Overlay fade-in when panel just opened
-            if (e.PropertyName == nameof(GoalsViewModel.IsVoicePanelOpen) && vm.IsVoicePanelOpen)
-            {
-                VoiceOverlay.BeginAnimation(OpacityProperty,
-                    new DoubleAnimation(0, 1, new Duration(TimeSpan.FromMilliseconds(220))));
-            }
-
-            // Orb pulse + waveform bars
             if (vm.IsVoiceListening)
                 StartWaveAnimations();
             else
@@ -69,8 +61,11 @@ public partial class GoalsView : UserControl
 
         foreach (var key in new[] { "OrbPulse", "Wave1", "Wave2", "Wave3", "Wave4", "Wave5" })
         {
-            var sb = (Storyboard)Resources[key];
-            sb.Stop(this);
+            if (Resources.Contains(key))
+            {
+                var sb = (Storyboard)Resources[key];
+                sb.Stop(this);
+            }
         }
     }
 }

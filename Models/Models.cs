@@ -60,8 +60,11 @@ public record GoalCreate(
 );
 
 public record ConversationGoalResponse(
-    [property: JsonPropertyName("created_goals")] List<GoalRecord> CreatedGoals,
-    [property: JsonPropertyName("assistant_reply")] string AssistantReply
+    [property: JsonPropertyName("created_goals")] List<GoalRecord>? CreatedGoals = null,
+    [property: JsonPropertyName("updated_goals")] List<GoalRecord>? UpdatedGoals = null,
+    [property: JsonPropertyName("deleted_goal_ids")] List<Guid>? DeletedGoalIds = null,
+    [property: JsonPropertyName("assistant_reply")] string AssistantReply = "",
+    [property: JsonPropertyName("action")] string? Action = null
 );
 
 /// <summary>One bubble in the voice chat UI.</summary>
