@@ -155,7 +155,7 @@ public class AuthViewModel : ViewModelBase
             }
             else
             {
-                ErrorMessage = "Could not connect to local server (127.0.0.1:8000). Is the backend running?";
+                ErrorMessage = "Could not connect to backend server. Please verify your internet connection.";
             }
         }
         catch (Exception ex)

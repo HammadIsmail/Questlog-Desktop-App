@@ -23,10 +23,12 @@ public partial class App : Application
         // Initialize Toast notifications (registers AppUserModelID)
         ToastService.Initialize();
 
-        // Core HTTP & API Client
+        // Core HTTP & API Client (defaults to live Vercel backend, or override via QUESTLOG_API_URL)
+        var backendUrl = Environment.GetEnvironmentVariable("QUESTLOG_API_URL")
+                         ?? "https://questlog-backend-pi.vercel.app";
         _httpClient = new HttpClient
         {
-            BaseAddress = new Uri("http://127.0.0.1:8000"),
+            BaseAddress = new Uri(backendUrl),
             Timeout = TimeSpan.FromSeconds(30)
         };
         _apiClient = new ApiClient(_httpClient);

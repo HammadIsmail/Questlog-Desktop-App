@@ -11,7 +11,7 @@ public class SettingsViewModel : ViewModelBase
     private readonly ApiClient _apiClient;
     private readonly ActivityTrackerService _tracker;
 
-    private string _backendUrl = "http://127.0.0.1:8000";
+    private string _backendUrl = Environment.GetEnvironmentVariable("QUESTLOG_API_URL") ?? "https://questlog-backend-pi.vercel.app";
     public string BackendUrl
     {
         get => _backendUrl;
@@ -72,7 +72,7 @@ public class SettingsViewModel : ViewModelBase
         try
         {
             bool alive = await _apiClient.IsBackendAliveAsync();
-            BackendStatus = alive ? "Online (Healthy)" : "Offline (Cannot reach 127.0.0.1:8000)";
+            BackendStatus = alive ? "Online (Healthy)" : $"Offline (Cannot reach {_backendUrl})";
         }
         catch (Exception ex)
         {
